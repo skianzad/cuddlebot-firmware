@@ -225,4 +225,4 @@ debug-serve:
 debug: $(BUILDDIR)/$(PROJECT).elf
 	arm-none-eabi-gdb $<
 
-.PHONY: flash debug
+.PHONY: flash debug debug-serve
