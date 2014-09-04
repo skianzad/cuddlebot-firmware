@@ -1,17 +1,28 @@
 /*
-    ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
 
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
+Cuddlemaster - Copyright (C) 2014 Michael Phan-Ba
 
-        http://www.apache.org/licenses/LICENSE-2.0
+Property of SPIN Research Group
+ICICS/CS Building X508-2366 Main Mall
+Vancouver, B.C. V6T 1Z4 Canada
+(604) 822 8169 - maclean@cs.ubc.ca
 
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
+----
+
+ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
 */
 
 #ifndef _BOARD_H_
@@ -101,8 +112,8 @@
 #define GPIOC_VIO1                  10
 #define GPIOC_VIO0                  11
 #define GPIOC_X12                   12 // unused
-#define GPIOC_ADDR1                 13
-#define GPIOC_ADDR2                 14
+#define GPIOC_ADDR0                 13
+#define GPIOC_ADDR1                 14
 #define GPIOC_ADDROUT               15
 
 #define GPIOD_X2                    2 // unused
@@ -383,7 +394,7 @@
  * PC12 - N/A                       (input floating).
  * PC13 - ADDR0                     (input floating).
  * PC14 - ADDR1                     (input floating).
- * PC15 - ADDROUT                   (output pushpull).
+ * PC15 - ADDROUT                   (input floating).
  */
 #define VAL_GPIOC_MODER             (PIN_MODE_ANALOG(GPIOC_TORQUE) |        \
                                      PIN_MODE_ANALOG(GPIOC_TEMP) |          \
@@ -398,9 +409,9 @@
                                      PIN_MODE_INPUT(GPIOC_VIO1)  |          \
                                      PIN_MODE_INPUT(GPIOC_VIO0)  |          \
                                      PIN_MODE_INPUT(GPIOC_X12) |            \
+                                     PIN_MODE_INPUT(GPIOC_ADDR0)  |         \
                                      PIN_MODE_INPUT(GPIOC_ADDR1)  |         \
-                                     PIN_MODE_INPUT(GPIOC_ADDR2)  |         \
-                                     PIN_MODE_OUTPUT(GPIOC_ADDROUT))
+                                     PIN_MODE_INPUT(GPIOC_ADDROUT))
 #define VAL_GPIOC_OTYPER            (PIN_OTYPE_PUSHPULL(GPIOC_TORQUE) |     \
                                      PIN_OTYPE_PUSHPULL(GPIOC_TEMP) |       \
                                      PIN_OTYPE_PUSHPULL(GPIOC_POS_SIN) |    \
@@ -414,8 +425,8 @@
                                      PIN_OTYPE_PUSHPULL(GPIOC_VIO1)  |      \
                                      PIN_OTYPE_PUSHPULL(GPIOC_VIO0)  |      \
                                      PIN_OTYPE_PUSHPULL(GPIOC_X12) |        \
+                                     PIN_OTYPE_PUSHPULL(GPIOC_ADDR0)  |     \
                                      PIN_OTYPE_PUSHPULL(GPIOC_ADDR1)  |     \
-                                     PIN_OTYPE_PUSHPULL(GPIOC_ADDR2)  |     \
                                      PIN_OTYPE_PUSHPULL(GPIOC_ADDROUT))
 #define VAL_GPIOC_OSPEEDR           (PIN_OSPEED_100M(GPIOC_TORQUE) |        \
                                      PIN_OSPEED_100M(GPIOC_TEMP) |          \
@@ -430,8 +441,8 @@
                                      PIN_OSPEED_100M(GPIOC_VIO1)  |         \
                                      PIN_OSPEED_100M(GPIOC_VIO0)  |         \
                                      PIN_OSPEED_2M(GPIOC_X12) |             \
+                                     PIN_OSPEED_100M(GPIOC_ADDR0)  |        \
                                      PIN_OSPEED_100M(GPIOC_ADDR1)  |        \
-                                     PIN_OSPEED_100M(GPIOC_ADDR2)  |        \
                                      PIN_OSPEED_100M(GPIOC_ADDROUT))
 #define VAL_GPIOC_PUPDR             (PIN_PUPDR_FLOATING(GPIOC_TORQUE) |     \
                                      PIN_PUPDR_FLOATING(GPIOC_TEMP) |       \
@@ -446,8 +457,8 @@
                                      PIN_PUPDR_FLOATING(GPIOC_VIO1)  |      \
                                      PIN_PUPDR_FLOATING(GPIOC_VIO0)  |      \
                                      PIN_PUPDR_FLOATING(GPIOC_X12) |        \
+                                     PIN_PUPDR_FLOATING(GPIOC_ADDR0)  |     \
                                      PIN_PUPDR_FLOATING(GPIOC_ADDR1)  |     \
-                                     PIN_PUPDR_FLOATING(GPIOC_ADDR2)  |     \
                                      PIN_PUPDR_FLOATING(GPIOC_ADDROUT))
 #define VAL_GPIOC_ODR               (PIN_ODR_LOW(GPIOC_TORQUE) |            \
                                      PIN_ODR_LOW(GPIOC_TEMP) |              \
@@ -462,8 +473,8 @@
                                      PIN_ODR_LOW(GPIOC_VIO1)  |             \
                                      PIN_ODR_LOW(GPIOC_VIO0)  |             \
                                      PIN_ODR_LOW(GPIOC_X12) |               \
+                                     PIN_ODR_LOW(GPIOC_ADDR0)  |            \
                                      PIN_ODR_LOW(GPIOC_ADDR1)  |            \
-                                     PIN_ODR_LOW(GPIOC_ADDR2)  |            \
                                      PIN_ODR_LOW(GPIOC_ADDROUT))
 #define VAL_GPIOC_AFRL              (PIN_AFIO_AF(GPIOC_TORQUE, 0) |         \
                                      PIN_AFIO_AF(GPIOC_TEMP, 0) |           \
@@ -478,8 +489,8 @@
                                      PIN_AFIO_AF(GPIOC_VIO1 , 0) |          \
                                      PIN_AFIO_AF(GPIOC_VIO0 , 0) |          \
                                      PIN_AFIO_AF(GPIOC_X12, 0) |            \
+                                     PIN_AFIO_AF(GPIOC_ADDR0 , 0) |         \
                                      PIN_AFIO_AF(GPIOC_ADDR1 , 0) |         \
-                                     PIN_AFIO_AF(GPIOC_ADDR2 , 0) |         \
                                      PIN_AFIO_AF(GPIOC_ADDROUT , 0))
 
 /*
