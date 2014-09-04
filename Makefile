@@ -89,11 +89,7 @@ CSRC = $(PORTSRC) \
        $(HALSRC) \
        $(PLATFORMSRC) \
        $(BOARDSRC) \
-       $(CHIBIOS)/os/various/chprintf.c \
-       \
-       addresscfg.c \
-       usbcfg.c \
-       \
+       address.c \
        main.c
 
 # C++ sources that can be compiled in ARM or THUMB mode depending on the global

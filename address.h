@@ -9,8 +9,8 @@ Vancouver, B.C. V6T 1Z4 Canada
 
 */
 
-#ifndef _ADDRESSCFG_H_
-#define _ADDRESSCFG_H_
+#ifndef _ADDRESS_H_
+#define _ADDRESS_H_
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -39,4 +39,4 @@ Check if the address is address to the board.
 */
 bool cm_address_is_self(cm_address_t addr);
 
-#endif /* _ADDRESSCFG_H_ */
+#endif /* _ADDRESS_H_ */

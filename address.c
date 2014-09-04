@@ -15,7 +15,7 @@ Vancouver, B.C. V6T 1Z4 Canada
 #include <ch.h>
 #include <hal.h>
 
-#include "addresscfg.h"
+#include "address.h"
 
 // Board address.
 cm_address_t cm_address = ADDRESS_INVALID;
