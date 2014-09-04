@@ -9,6 +9,7 @@ Vancouver, B.C. V6T 1Z4 Canada
 
 */
 
+#include <stdbool.h>
 #include <stdint.h>
 
 #include <ch.h>
@@ -20,7 +21,7 @@ Vancouver, B.C. V6T 1Z4 Canada
 cm_address_t cm_address = ADDRESS_NONE;
 
 /*
-Read the board address.
+Read the board address and save to `cm_address`.
 
 The actuator boards are arranged from rear to head of the CuddleBot
 in the following order:
@@ -73,4 +74,13 @@ void cm_address_init(void) {
 		case 0b0000: cm_address = ADDRESS_HEAD_YAW; break;
 		default: cm_address = ADDRESS_NONE;
 	}
+}
+
+/*
+Check if the address is address to the board.
+
+The input address
+*/
+bool cm_address_is_self(cm_address_t addr) {
+	return (addr & cm_address) != 0 ? true : false;
 }
