@@ -16,12 +16,12 @@ Vancouver, B.C. V6T 1Z4 Canada
 #include <stdint.h>
 
 // Board bitset addresses.
-#define ADDRESS_INVALID				0x00
-#define ADDRESS_RIBS				0x01
-#define ADDRESS_HEAD_PITCH			0x02
-#define ADDRESS_HEAD_YAW			0x04
-#define ADDRESS_SPINE				0x08
-#define ADDRESS_PURR				0x10
+#define ADDRESS_INVALID     0x00
+#define ADDRESS_RIBS        0x01
+#define ADDRESS_HEAD_PITCH  0x02
+#define ADDRESS_HEAD_YAW    0x04
+#define ADDRESS_SPINE       0x08
+#define ADDRESS_PURR        0x10
 
 // Board address type.
 typedef uint8_t cm_address_t;
@@ -29,9 +29,7 @@ typedef uint8_t cm_address_t;
 // Board address.
 extern cm_address_t cm_address;
 
-/*
-Read the board address and save to `cm_address`.
-*/
+// Read the board address and save to `cm_address`.
 void cm_address_init(void);
 
 /*
