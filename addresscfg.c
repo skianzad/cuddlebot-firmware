@@ -18,7 +18,7 @@ Vancouver, B.C. V6T 1Z4 Canada
 #include "addresscfg.h"
 
 // Board address.
-cm_address_t cm_address = ADDRESS_NONE;
+cm_address_t cm_address = ADDRESS_INVALID;
 
 /*
 Read the board address and save to `cm_address`.
@@ -72,7 +72,7 @@ void cm_address_init(void) {
 		case 0b1010: cm_address = ADDRESS_HEAD_PITCH; break;
 		case 0b0101: cm_address = ADDRESS_SPINE; break;
 		case 0b0000: cm_address = ADDRESS_HEAD_YAW; break;
-		default: cm_address = ADDRESS_NONE;
+		default: cm_address = ADDRESS_INVALID;
 	}
 }
 
