@@ -28,10 +28,10 @@ in the following order:
 
 		Conn	ADDR0/1		Slave				H1,H0,L1,L0	ADDR
 Rear	CN105	VCC HIZ		ADDRESS_RIBS		1,1,1,0		0x01
-		CN107	VCC VCC		ADDRESS_PURR		1,1,1,1		0x02
-		CN103	VCC GND		ADDRESS_HEAD_PITCH	1,0,1,0		0x04
+		CN107	VCC VCC		ADDRESS_PURR		1,1,1,1		0x10
+		CN103	VCC GND		ADDRESS_HEAD_PITCH	1,0,1,0		0x02
 		CN102	GND VCC		ADDRESS_SPINE		0,1,0,1		0x08
-Head	CN101	GND GND		ADDRESS_HEAD_YAW	0,0,0,0		0x10
+Head	CN101	GND GND		ADDRESS_HEAD_YAW	0,0,0,0		0x04
 */
 void cm_address_init(void) {
 	uint32_t addr = 0;
@@ -77,7 +77,7 @@ void cm_address_init(void) {
 }
 
 /*
-Check if the address is address to the board.
+Check if the address is addressed to the board.
 
 The input address
 */
