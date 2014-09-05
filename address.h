@@ -30,7 +30,7 @@ typedef uint8_t cm_address_t;
 extern cm_address_t cm_address;
 
 // Read the board address and save to `cm_address`.
-void cm_address_init(void);
+void cm_address_read(void);
 
 /*
 Check if the address is address to the board.

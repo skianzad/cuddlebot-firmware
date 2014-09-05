@@ -33,7 +33,7 @@ Rear    CN105    VCC HIZ    ADDRESS_RIBS          1  1  1  0    0x01
         CN102    GND VCC    ADDRESS_SPINE         0  1  0  1    0x08
 Head    CN101    GND GND    ADDRESS_HEAD_YAW      0  0  0  0    0x04
 */
-void cm_address_init(void) {
+void cm_address_read(void) {
 	uint32_t addr = 0;
 
 	// set addrout to vdd

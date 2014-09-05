@@ -40,8 +40,8 @@ int main(void) {
 	halInit();
 	chSysInit();
 
-	// initialize the board address
-	cm_address_init();
+	// read board address
+	cm_address_read();
 
 	// start serial driver
 	sdStart(&SD3, NULL);
