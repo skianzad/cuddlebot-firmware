@@ -90,6 +90,7 @@ CSRC = $(PORTSRC) \
        $(PLATFORMSRC) \
        $(BOARDSRC) \
        address.c \
+       motor.c \
        main.c
 
 # C++ sources that can be compiled in ARM or THUMB mode depending on the global
