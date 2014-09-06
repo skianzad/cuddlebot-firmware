@@ -46,5 +46,10 @@ int main(void) {
 	// start serial driver
 	sdStart(&SD3, NULL);
 
+	for (;;) {
+		chSequentialStreamWrite(&SD3, (const uint8_t *)"hello world!\n", 13);
+		chThdSleepMilliseconds(500);
+	}
+
 	return RDY_OK;
 }
