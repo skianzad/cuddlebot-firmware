@@ -81,11 +81,11 @@ void cm_motor_set(int16_t p) {
 		bool newdir = (pwmstate < 0) ^ (p < 0);
 		// update forces
 		if (p > 0) {
-			pwmEnableChannel(&PWMD1, 0, PWM_FRACTION_TO_WIDTH(&PWMD1, p, PWM_PERIOD));
+			pwmEnableChannel(&PWMD1, 0, PWM_FRACTION_TO_WIDTH(&PWMD1, PWM_PERIOD, p));
 			if (newdir) pwmDisableChannel(&PWMD1, 1);
 		} else {
 			if (newdir) pwmDisableChannel(&PWMD1, 0);
-			pwmEnableChannel(&PWMD1, 1, PWM_FRACTION_TO_WIDTH(&PWMD1, -p, PWM_PERIOD));
+			pwmEnableChannel(&PWMD1, 1, PWM_FRACTION_TO_WIDTH(&PWMD1, PWM_PERIOD, -p));
 		}
 	}
 
