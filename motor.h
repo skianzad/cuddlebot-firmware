@@ -12,19 +12,33 @@ Vancouver, B.C. V6T 1Z4 Canada
 #ifndef _MOTOR_H_
 #define _MOTOR_H_
 
-// Initialize motor.
+/*
+
+Initialize motor.
+
+*/
 void cm_motor_init(void);
 
-// Enable motor.
+/*
+
+Enable motor.
+
+*/
 void cm_motor_enable(void);
 
-// Disable motor.
+/*
+
+Disable motor.
+
+*/
 void cm_motor_disable(void);
 
 /*
+
 Set motor output.
 
 @param p integer between -2048 and 2048
+
 */
 void cm_motor_set(int16_t p);
 

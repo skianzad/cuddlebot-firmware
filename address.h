@@ -26,16 +26,41 @@ Vancouver, B.C. V6T 1Z4 Canada
 // Board address type.
 typedef uint8_t cm_address_t;
 
-// Board address.
+/*
+
+Board address.
+
+This value should not change after a call to `cm_address_read()`.
+
+*/
 extern cm_address_t cm_address;
 
-// Read the board address and save to `cm_address`.
+/*
+
+Read the board address and save to `cm_address`.
+
+The actuator boards are arranged from rear to head of the CuddleBot
+in the following order:
+
+        Conn     ADDR0/1    Slave                H1 H0 L1 L0    ADDR
+Rear    CN105    VCC HIZ    ADDRESS_RIBS          1  1  1  0    0x01
+        CN107    VCC VCC    ADDRESS_PURR          1  1  1  1    0x10
+        CN103    VCC GND    ADDRESS_HEAD_PITCH    1  0  1  0    0x02
+        CN102    GND VCC    ADDRESS_SPINE         0  1  0  1    0x08
+Head    CN101    GND GND    ADDRESS_HEAD_YAW      0  0  0  0    0x04
+
+This function should be invoked during system initialization and
+before configuring interrupt handlers and higher priority threads.
+
+*/
 void cm_address_read(void);
 
 /*
-Check if the address is address to the board.
+
+Check if the input address matches the board address.
 
 @param addr input address
+
 */
 bool cm_address_is_self(cm_address_t addr);
 

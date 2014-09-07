@@ -36,28 +36,48 @@ static const PWMConfig pwmcfg = {
 	0
 };
 
-// Initialize motor.
+/*
+
+Initialize motor.
+
+*/
 void cm_motor_init(void) {
+	// currently no-op
 }
 
-// Enable motor.
+/*
+
+Enable motor.
+
+*/
 void cm_motor_enable(void) {
+	// enable the motor driver chip
 	palSetPad(GPIOB, GPIOB_MOTOR_EN);
+	// start the pwm peripherable
 	pwmStart(&PWMD1, &pwmcfg);
 }
 
-// Disable motor.
+/*
+
+Disable motor.
+
+*/
 void cm_motor_disable(void) {
+	// stop the pwm peripherable
 	pwmStop(&PWMD1);
+	// disable the motor driver chip
 	palClearPad(GPIOB, GPIOB_MOTOR_EN);
 }
 
 /*
+
 Set motor output.
 
 @param p integer between -2048 and 2048
+
 */
 void cm_motor_set(int16_t p) {
+	// previous pwm state
 	static int16_t pwmstate = 0;
 
 	// bound input
