@@ -14,8 +14,33 @@ Vancouver, B.C. V6T 1Z4 Canada
 
 #include "sensor.h"
 
-// Number of channels to be sampled for ADC1.
-#define ADC_GRP_NUM_CHANNELS 1
+#define GROUND_SIZE   8
+#define POWER_SIZE    8
+
+// Sampling timer semaphore for triggering an ADC sample.
+static BSEMAPHORE_DECL(gpt_trigger, FALSE);
+
+/*
+
+Signal the sampling thread to take a sample and send the data.
+
+The separation between timer callback and the sampling thread is
+needed because this function runs as an interrupt routine. While in
+the interrupt routine, the ADC is blocked.
+
+*/
+static void gpt_callback(GPTDriver *gptp) {
+	(void)gptp;
+	chBSemSignalI(&gpt_trigger);
+}
+
+// General Purpose Timer configuration.
+static const GPTConfig gptcfg = {
+	.frequency = 1000,
+	.callback = gpt_callback,
+	// hardware-specfic configuration
+	.dier = 0
+};
 
 /*
 
@@ -31,6 +56,7 @@ Timing:   15 cycles sample time
 */
 const ADCConversionGroup adcgrpcfg = {
 	.circular = FALSE,                        // linear buffer
+#define ADC_GRP_NUM_CHANNELS 1
 	.num_channels = ADC_GRP_NUM_CHANNELS,     // channel 1
 	.end_cb = NULL,
 	.error_cb = NULL,
@@ -43,6 +69,13 @@ const ADCConversionGroup adcgrpcfg = {
 	.sqr2 = 0,
 	.sqr3 = ADC_SQR3_SQ1_N(ADC_CHANNEL_IN1)
 };
+
+// Sensor sample and message.
+typedef struct {
+	uint32_t time;
+	adcsample_t values[GROUND_SIZE][POWER_SIZE];
+	uint8_t checksum;
+} sensor_sample_t;
 
 /*
 
@@ -99,4 +132,95 @@ void sample_grid(sensor_sample_t *buf) {
 	palSetPadMode(GPIOA, 1, PAL_MODE_INPUT);
 	// set PD0-6 pins to high-z
 	palSetGroupMode(GPIOD, 0x7F, 0, PAL_MODE_INPUT);
+}
+
+// Stack space for sensor sampling thread.
+static WORKING_AREA(sampling_thread_wa, 128);
+
+// Pointer to sampling thread.
+static Thread *sampling_thread_tp;
+
+// Pointer to sampling thread data.
+static BaseSequentialStream *sampling_thread_dptr = NULL;
+
+// Sensor sampling thread.
+static msg_t sampling_thread(void *arg) {
+	BaseSequentialStream *chp = (BaseSequentialStream *)arg;
+
+	while (!chThdShouldTerminate()) {
+		// wait for trigger
+		if (chBSemWait(&gpt_trigger) != RDY_OK) {
+			continue;
+		}
+
+		// get next buffer
+		static sensor_sample_t buf;
+
+		// sample grid
+		sample_grid(&buf);
+
+		// send data
+		chSequentialStreamWrite(chp, (uint8_t *)&buf, sizeof(buf));
+	}
+
+	return RDY_OK;
+}
+
+/*
+
+Initialize sensor.
+
+1. Initialize the timer.
+2. Start the sampling thread.
+
+@param chp BaseSequentialStream to write sample data
+
+*/
+void cm_sensor_init(BaseSequentialStream *chp) {
+	// initialize general purpose timer driver
+	gptStart(&GPTD9, &gptcfg);
+	// save stream pointer
+	sampling_thread_dptr = chp;
+}
+
+/*
+
+Start the sampling timer.
+
+Does nothing if the thread is still running.
+
+*/
+void cm_sensor_start(void) {
+	if (sampling_thread_tp) {
+		return;
+	}
+
+	// start sensor sampling thread
+	sampling_thread_tp = chThdCreateStatic(
+	                       sampling_thread_wa, sizeof(sampling_thread_wa),
+	                       HIGHPRIO, sampling_thread,
+	                       (void *)sampling_thread_dptr);
+
+	// 1000 / 10 = 100 Hz
+	gptStartContinuous(&GPTD9, 10);
+}
+
+/*
+
+Stop the sampling timer.
+
+Does nothing if the thread is not running.
+
+*/
+void cm_sensor_stop(void) {
+	if (!sampling_thread_tp) {
+		return;
+	}
+
+	if (chThdTerminated(sampling_thread_tp)) {
+		gptStopTimer(&GPTD9);
+		sampling_thread_tp = NULL;
+	} else {
+		chThdTerminate(sampling_thread_tp);
+	}
 }

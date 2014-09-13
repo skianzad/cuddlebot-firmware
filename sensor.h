@@ -15,42 +15,34 @@ Vancouver, B.C. V6T 1Z4 Canada
 #include <ch.h>
 #include <hal.h>
 
-#define GROUND_SIZE   8
-#define POWER_SIZE    8
+/*
 
-// Sensor sample and message.
-typedef struct
-{
-    uint32_t time;
-    adcsample_t values[GROUND_SIZE][POWER_SIZE];
-    uint8_t checksum;
-} sensor_sample_t;
+Initialize sensor.
+
+1. Initialize the timer.
+2. Start the sampling thread.
+
+@param chp BaseSequentialStream to write sample data
+
+*/
+void cm_sensor_init(BaseSequentialStream *chp);
 
 /*
 
-ADC conversion group.
+Start the sampling timer.
 
-Mode:     linear buffer, 1 sample of 1 channel, SW triggered.
-
-Timing:   15 cycles sample time
-          15 cycles conversion time
-          30 total cycles
-          ~1.43 µs total time @ 21 Mhz ADC clock
+Does nothing if the sampling thread is still running.
 
 */
-extern const ADCConversionGroup adcgrpcfg;
+void cm_sensor_start(void);
 
 /*
 
-Sample the pressure grid.
+Stop the sampling timer.
 
-1. Set the appropriate pin modes.
-2. Enables the ADC.
-3. Samples the pressure sensor grid.
-4. Disables the ADC.
-5. Sends the data using the serial driver.
+Does nothing if the sampling thread is not running.
 
 */
-void sample_grid(sensor_sample_t *buf);
+void cm_sensor_stop(void);
 
 #endif // _SENSOR_H_
