@@ -89,6 +89,7 @@ CSRC = $(PORTSRC) \
        $(PLATFORMSRC) \
        $(BOARDSRC) \
        $(CHIBIOS)/os/various/chprintf.c \
+       usb_serial.c \
        usbcfg.c \
        sensor.c \
        main.c

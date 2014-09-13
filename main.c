@@ -29,11 +29,11 @@ limitations under the License.
 #include <hal.h>
 #include <chprintf.h>
 
-#include "usbcfg.h"
 #include "sensor.h"
+#include "usb_serial.h"
 
 // Virtual serial port over USB driver.
-SerialUSBDriver SDU1;
+extern SerialUSBDriver SDU1;
 
 // Sampling timer semaphore for triggering an ADC sample.
 static BSEMAPHORE_DECL(gpt_trigger, FALSE);
@@ -161,16 +161,7 @@ int main(void) {
 	chSysInit();
 
 	// initialize the serial-over-USB driver
-	sduObjectInit(&SDU1);
-	sduStart(&SDU1, &serusbcfg);
-
-	// Activate the USB driver and then the USB bus pull-up on D+. Note,
-	// a delay is inserted in order to not have to disconnect the cable
-	// after a reset.
-	usbDisconnectBus(serusbcfg.usbp);
-	chThdSleepMilliseconds(1000);
-	usbStart(serusbcfg.usbp, &usbcfg);
-	usbConnectBus(serusbcfg.usbp);
+	cm_usb_serial_init();
 
 	// initialize general purpose timer driver
 	gptStart(&GPTD9, &gptcfg);
