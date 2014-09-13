@@ -73,7 +73,7 @@ const ADCConversionGroup adcgrpcfg = {
 // Sensor sample and message.
 typedef struct {
 	uint32_t time;
-	adcsample_t values[GROUND_SIZE][POWER_SIZE];
+	adcsample_t values[POWER_SIZE][GROUND_SIZE];
 	uint8_t checksum;
 } sensor_sample_t;
 
@@ -108,12 +108,12 @@ void sample_grid(sensor_sample_t *buf) {
 
 	// sample sensors
 	uint8_t x, y;
-	for (x = 0; x < GROUND_SIZE; x++) {
+	for (x = 0; x < POWER_SIZE; x++) {
 
 		// configure grounding mux
 		palWriteGroup(GPIOD, 0x07, 0, x);
 
-		for (y = 0; y < POWER_SIZE; y++) {
+		for (y = 0; y < GROUND_SIZE; y++) {
 			// configure power mux
 			palWriteGroup(GPIOD, 0x07, 3, y);
 
