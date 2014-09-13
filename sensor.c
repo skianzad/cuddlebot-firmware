@@ -218,9 +218,9 @@ void cm_sensor_stop(void) {
 	}
 
 	if (chThdTerminated(sampling_thread_tp)) {
-		gptStopTimer(&GPTD9);
 		sampling_thread_tp = NULL;
 	} else {
+		gptStopTimer(&GPTD9);
 		chThdTerminate(sampling_thread_tp);
 	}
 }
