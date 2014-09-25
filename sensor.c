@@ -82,10 +82,9 @@ typedef struct {
 Sample the pressure grid.
 
 1. Set the appropriate pin modes.
-2. Enables the ADC.
-3. Samples the pressure sensor grid.
-4. Disables the ADC.
-5. Sends the data using the serial driver.
+2. Enable the ADC.
+3. Sample the pressure sensor grid.
+4. Disable the ADC.
 
 */
 void sample_grid(sensor_sample_t *buf) {
@@ -140,7 +139,15 @@ static WORKING_AREA(sampling_thread_wa, 128);
 // Pointer to sampling thread.
 static Thread *sampling_thread_tp;
 
-// Sensor sampling thread.
+/*
+
+Sensor sampling thread.
+
+1. Wait for timer signal.
+2. Sample grid.
+3. Send the data using the serial driver.
+
+*/
 static msg_t sampling_thread(void *arg) {
 	BaseSequentialStream *chp = (BaseSequentialStream *)arg;
 
@@ -170,8 +177,6 @@ Initialize sensor.
 1. Initialize the timer.
 2. Start the sampling thread.
 
-@param chp BaseSequentialStream to write sample data
-
 */
 void cm_sensor_init() {
 	// initialize general purpose timer driver
@@ -183,6 +188,8 @@ void cm_sensor_init() {
 Start the sampling timer.
 
 Does nothing if the thread is still running.
+
+@param chp BaseSequentialStream to write sample data
 
 */
 void cm_sensor_start(BaseSequentialStream *chp) {

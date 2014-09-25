@@ -22,8 +22,6 @@ Initialize sensor.
 1. Initialize the timer.
 2. Start the sampling thread.
 
-@param chp BaseSequentialStream to write sample data
-
 */
 void cm_sensor_init(void);
 
@@ -31,7 +29,9 @@ void cm_sensor_init(void);
 
 Start the sampling timer.
 
-Does nothing if the sampling thread is still running.
+Does nothing if the thread is still running.
+
+@param chp BaseSequentialStream to write sample data
 
 */
 void cm_sensor_start(BaseSequentialStream *chp);
