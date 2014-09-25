@@ -52,7 +52,7 @@ void sample_on_connection(void) {
 
 	case SERWRITE_READY:
 		// start sampling timer
-		cm_sensor_start();
+		cm_sensor_start((BaseSequentialStream *)&SDU1);
 		// next state active
 		state = SERWRITE_ACTIVE;
 		break;
@@ -96,7 +96,7 @@ int main(void) {
 	// initialize the serial-over-USB driver
 	cm_usb_serial_init();
 	// initialize the sensor
-	cm_sensor_init((BaseSequentialStream *)&SDU1);
+	cm_sensor_init();
 
 	// execute state machine
 	for (;;) {

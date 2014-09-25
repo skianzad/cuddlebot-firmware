@@ -73,7 +73,7 @@ const ADCConversionGroup adcgrpcfg = {
 // Sensor sample and message.
 typedef struct {
 	uint32_t time;
-	adcsample_t values[POWER_SIZE][GROUND_SIZE];
+	uint16_t values[POWER_SIZE][GROUND_SIZE];
 	uint8_t checksum;
 } sensor_sample_t;
 
@@ -92,7 +92,7 @@ void sample_grid(sensor_sample_t *buf) {
 	// set PA1 pin to analog input
 	palSetPadMode(GPIOA, 1, PAL_MODE_INPUT_ANALOG);
 	// set PD0-6 pins to push-pull output
-	palSetGroupMode(GPIOD, 0x7F, 0, PAL_MODE_OUTPUT_PUSHPULL);
+	palSetGroupMode(GPIOD, 0x3F, 0, PAL_MODE_OUTPUT_PUSHPULL);
 
 	// save current time, truncating to 32-bits
 	// use formula to convert to milliseconds:
@@ -110,11 +110,11 @@ void sample_grid(sensor_sample_t *buf) {
 	uint8_t x, y;
 	for (x = 0; x < POWER_SIZE; x++) {
 
-		// configure grounding mux
+		// configure power mux
 		palWriteGroup(GPIOD, 0x07, 0, x);
 
 		for (y = 0; y < GROUND_SIZE; y++) {
-			// configure power mux
+			// configure ground mux
 			palWriteGroup(GPIOD, 0x07, 3, y);
 
 			// sample voltage
@@ -131,7 +131,7 @@ void sample_grid(sensor_sample_t *buf) {
 	// set PA1 pin to high-z
 	palSetPadMode(GPIOA, 1, PAL_MODE_INPUT);
 	// set PD0-6 pins to high-z
-	palSetGroupMode(GPIOD, 0x7F, 0, PAL_MODE_INPUT);
+	palSetGroupMode(GPIOD, 0x3F, 0, PAL_MODE_INPUT);
 }
 
 // Stack space for sensor sampling thread.
@@ -139,9 +139,6 @@ static WORKING_AREA(sampling_thread_wa, 128);
 
 // Pointer to sampling thread.
 static Thread *sampling_thread_tp;
-
-// Pointer to sampling thread data.
-static BaseSequentialStream *sampling_thread_dptr = NULL;
 
 // Sensor sampling thread.
 static msg_t sampling_thread(void *arg) {
@@ -153,13 +150,13 @@ static msg_t sampling_thread(void *arg) {
 			continue;
 		}
 
-		// get next buffer
-		static sensor_sample_t buf;
-
 		// sample grid
+		static sensor_sample_t buf;
 		sample_grid(&buf);
 
 		// send data
+		const int32_t header = -1;
+		chSequentialStreamWrite(chp, (uint8_t *)&header, sizeof(header));
 		chSequentialStreamWrite(chp, (uint8_t *)&buf, sizeof(buf));
 	}
 
@@ -176,11 +173,9 @@ Initialize sensor.
 @param chp BaseSequentialStream to write sample data
 
 */
-void cm_sensor_init(BaseSequentialStream *chp) {
+void cm_sensor_init() {
 	// initialize general purpose timer driver
 	gptStart(&GPTD9, &gptcfg);
-	// save stream pointer
-	sampling_thread_dptr = chp;
 }
 
 /*
@@ -190,7 +185,7 @@ Start the sampling timer.
 Does nothing if the thread is still running.
 
 */
-void cm_sensor_start(void) {
+void cm_sensor_start(BaseSequentialStream *chp) {
 	if (sampling_thread_tp) {
 		return;
 	}
@@ -199,7 +194,7 @@ void cm_sensor_start(void) {
 	sampling_thread_tp = chThdCreateStatic(
 	                       sampling_thread_wa, sizeof(sampling_thread_wa),
 	                       HIGHPRIO, sampling_thread,
-	                       (void *)sampling_thread_dptr);
+	                       (void *)chp);
 
 	// 1000 / 10 = 100 Hz
 	gptStartContinuous(&GPTD9, 10);
