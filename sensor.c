@@ -193,7 +193,7 @@ Does nothing if the thread is still running.
 
 */
 void cm_sensor_start(BaseSequentialStream *chp) {
-	if (sampling_thread_tp) {
+	if (sampling_thread_tp && !chThdTerminated(sampling_thread_tp)) {
 		return;
 	}
 
