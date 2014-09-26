@@ -48,10 +48,15 @@ ADC conversion group.
 
 Mode:     linear buffer, 1 sample of 1 channel, SW triggered.
 
-Timing:   15 cycles sample time
+Timing:   28 cycles sample time
           15 cycles conversion time
-          30 total cycles
-          ~1.43 µs total time @ 21 Mhz ADC clock
+          43 total cycles
+
+          @ 21 Mhz ADC clock
+
+          ~1.33 µs sample time
+          ~0.71 µs conversion time
+          ~2.05 µs total time
 
 */
 const ADCConversionGroup adcgrpcfg = {
@@ -64,7 +69,7 @@ const ADCConversionGroup adcgrpcfg = {
 	.cr1 = 0,
 	.cr2 = ADC_CR2_SWSTART,
 	.smpr1 = 0,
-	.smpr2 = ADC_SMPR2_SMP_AN1(ADC_SAMPLE_15),
+	.smpr2 = ADC_SMPR2_SMP_AN1(ADC_SAMPLE_28),
 	.sqr1 = ADC_SQR1_NUM_CH(ADC_GRP_NUM_CHANNELS),
 	.sqr2 = 0,
 	.sqr3 = ADC_SQR3_SQ1_N(ADC_CHANNEL_IN1)
