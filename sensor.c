@@ -169,7 +169,8 @@ static msg_t sampling_thread(void *arg) {
 		// send data
 		const int32_t header = -1;
 		chSequentialStreamWrite(chp, (uint8_t *)&header, sizeof(header));
-		chSequentialStreamWrite(chp, (uint8_t *)&buf, sizeof(buf));
+		chSequentialStreamWrite(chp, (uint8_t *)&buf,
+			sizeof(buf.time) + sizeof(buf.values) + sizeof(buf.checksum));
 	}
 
 	return RDY_OK;
