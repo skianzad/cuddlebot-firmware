@@ -26,11 +26,6 @@ void cm_usb_serial_init(void) {
 	sduObjectInit(&SDU1);
 	sduStart(&SDU1, &serusbcfg);
 
-	// Activate the USB driver and then the USB bus pull-up on D+. Note,
-	// a delay is inserted in order to not have to disconnect the cable
-	// after a reset.
-	usbDisconnectBus(serusbcfg.usbp);
-	chThdSleepMilliseconds(1000);
+	// activate the USB driver
 	usbStart(serusbcfg.usbp, &usbcfg);
-	usbConnectBus(serusbcfg.usbp);
 }

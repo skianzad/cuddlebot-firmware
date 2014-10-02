@@ -48,15 +48,15 @@ ADC conversion group.
 
 Mode:     linear buffer, 1 sample of 1 channel, SW triggered.
 
-Timing:   28 cycles sample time
-          15 cycles conversion time
-          43 total cycles
+Timing:   61.5 cycles sample time
+          12.5 cycles conversion time
+          74 total cycles
 
-          @ 21 Mhz ADC clock
+          @ 72 Mhz ADC clock
 
-          ~1.33 µs sample time
-          ~0.71 µs conversion time
-          ~2.05 µs total time
+          ~0.85 µs sample time
+          ~0.17 µs conversion time
+          ~1.03 µs total time
 
 */
 const ADCConversionGroup adcgrpcfg = {
@@ -66,13 +66,19 @@ const ADCConversionGroup adcgrpcfg = {
 	.end_cb = NULL,
 	.error_cb = NULL,
 	// hardware-specific configuration
-	.cr1 = 0,
-	.cr2 = ADC_CR2_SWSTART,
-	.smpr1 = 0,
-	.smpr2 = ADC_SMPR2_SMP_AN1(ADC_SAMPLE_28),
-	.sqr1 = ADC_SQR1_NUM_CH(ADC_GRP_NUM_CHANNELS),
-	.sqr2 = 0,
-	.sqr3 = ADC_SQR3_SQ1_N(ADC_CHANNEL_IN1)
+	.cfgr = ADC_CFGR1_RES_12BIT,
+	.tr1 = 0,
+	.ccr = 0,
+	.smpr = {
+		ADC_SMPR1_SMP_AN1(ADC_SMPR_SMP_181P5),
+		0
+	},
+	.sqr = {
+		ADC_SQR1_NUM_CH(ADC_GRP_NUM_CHANNELS) |
+		ADC_SQR1_SQ1_N(ADC_CHANNEL_IN2),
+		0,
+		0
+	}
 };
 
 // Sensor sample and message.
@@ -94,7 +100,7 @@ Sample the pressure grid.
 */
 void sample_grid(sensor_sample_t *buf) {
 	// set PA1 pin to analog input
-	palSetPadMode(GPIOA, 1, PAL_MODE_INPUT_ANALOG);
+	palSetPadMode(GPIOA, GPIOA_PIN1, PAL_MODE_INPUT_ANALOG);
 	// set PD0-6 pins to push-pull output
 	palSetGroupMode(GPIOD, 0x3F, 0, PAL_MODE_OUTPUT_PUSHPULL);
 
@@ -170,7 +176,7 @@ static msg_t sampling_thread(void *arg) {
 		const int32_t header = -1;
 		chSequentialStreamWrite(chp, (uint8_t *)&header, sizeof(header));
 		chSequentialStreamWrite(chp, (uint8_t *)&buf,
-			sizeof(buf.time) + sizeof(buf.values) + sizeof(buf.checksum));
+		                        sizeof(buf.time) + sizeof(buf.values) + sizeof(buf.checksum));
 	}
 
 	return RDY_OK;
@@ -186,7 +192,7 @@ Initialize sensor.
 */
 void cm_sensor_init() {
 	// initialize general purpose timer driver
-	gptStart(&GPTD9, &gptcfg);
+	gptStart(&GPTD2, &gptcfg);
 }
 
 /*
@@ -210,7 +216,7 @@ void cm_sensor_start(BaseSequentialStream *chp) {
 	                       (void *)chp);
 
 	// 1000 / 10 = 100 Hz
-	gptStartContinuous(&GPTD9, 10);
+	gptStartContinuous(&GPTD2, 10);
 }
 
 /*
@@ -228,7 +234,7 @@ void cm_sensor_stop(void) {
 	if (chThdTerminated(sampling_thread_tp)) {
 		sampling_thread_tp = NULL;
 	} else {
-		gptStopTimer(&GPTD9);
+		gptStopTimer(&GPTD2);
 		chThdTerminate(sampling_thread_tp);
 	}
 }
