@@ -49,30 +49,18 @@ int main(void) {
 	// initialize motor
 	// cm_motor_init();
 
-	// enable LED1 and LED2
-	palSetPadMode(GPIOB, GPIOB_LED1, PAL_MODE_OUTPUT_PUSHPULL);
-	palSetPadMode(GPIOB, GPIOB_LED2, PAL_MODE_OUTPUT_PUSHPULL);
-	// toggle LED1
-	palTogglePad(GPIOB, GPIOB_LED1);
-
-	// enable RS-485 transmitter
-	palSetPad(GPIOB, GPIOB_RS485_TXEN);
-
 	for (;;) {
-		// toggle LED1 and LED2
-		palTogglePad(GPIOB, GPIOB_LED1);
-		palTogglePad(GPIOB, GPIOB_LED2);
-
 		// enable RS-485 transmitter
-		// palSetPad(GPIOB, GPIOB_RS485_TXEN);
+		palSetPad(GPIOB, GPIOB_RS485_TXEN);
+		chThdSleepMicroseconds(4);
 
 		// write hello world
-		const uint8_t *helloworld = (uint8_t *)("Hello World!");
 		uartStopSend(&UARTD3);
-		uartStartSend(&UARTD3, sizeof(helloworld), helloworld);
+		uartStartSend(&UARTD3, 14, (uint8_t *)"Hello World!\r\n");
 
 		// disable RS-485 transmitter
-		// palClearPad(GPIOB, GPIOB_RS485_TXEN);
+		chThdSleepMilliseconds(2);
+		palClearPad(GPIOB, GPIOB_RS485_TXEN);
 
 		// sleep
 		chThdSleepMilliseconds(500);
