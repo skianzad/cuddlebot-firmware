@@ -75,29 +75,29 @@ limitations under the License.
 #define GPIOA_AIO7                  7
 #define GPIOA_TIM1_CH1              8
 #define GPIOA_TIM1_CH2              9
-#define GPIOA_X10                   10 // unused
-#define GPIOA_X11                   11 // unused
-#define GPIOA_X12                   12 // unused
+#define GPIOA_PIN10                 10 // unused
+#define GPIOA_PIN11                 11 // unused
+#define GPIOA_PIN12                 12 // unused
 #define GPIOA_SWDIO                 13
 #define GPIOA_SWCLK                 14
-#define GPIOA_X15                   15 // unused
+#define GPIOA_PIN15                 15 // unused
 
 #define GPIOB_IVAL                  0
 #define GPIOB_VREF                  1
-#define GPIOB_X2                    2 // unused
+#define GPIOB_PIN2                  2 // unused
 #define GPIOB_SWO                   3
-#define GPIOB_X4                    4 // unused
+#define GPIOB_PIN4                  4 // unused
 #define GPIOB_MOTOR_EN              5
 #define GPIOB_POS_NEN               6
 #define GPIOB_POS_TCCEN             7
-#define GPIOB_X8                    8 // unused
-#define GPIOB_X9                    9 // unused
+#define GPIOB_PIN8                  8 // unused
+#define GPIOB_PIN9                  9 // unused
 #define GPIOB_USART3_TX             10
 #define GPIOB_USART3_RX             11
 #define GPIOB_LED1                  12
 #define GPIOB_LED2                  13
 #define GPIOB_RS485_TXEN            14
-#define GPIOB_X15                   15 // unused
+#define GPIOB_PIN15                 15 // unused
 
 #define GPIOC_TORQUE                0
 #define GPIOC_TEMP                  1
@@ -111,12 +111,12 @@ limitations under the License.
 #define GPIOC_VIO2                  9
 #define GPIOC_VIO1                  10
 #define GPIOC_VIO0                  11
-#define GPIOC_X12                   12 // unused
+#define GPIOC_PIN12                 12 // unused
 #define GPIOC_ADDR0                 13
 #define GPIOC_ADDR1                 14
 #define GPIOC_ADDROUT               15
 
-#define GPIOD_X2                    2 // unused
+#define GPIOD_PIN2                  2 // unused
 
 /*
  * I/O ports initial setup, this configuration is established soon after reset
@@ -170,12 +170,12 @@ limitations under the License.
                                      PIN_MODE_INPUT(GPIOA_AIO7) |           \
                                      PIN_MODE_ALTERNATE(GPIOA_TIM1_CH1) |   \
                                      PIN_MODE_ALTERNATE(GPIOA_TIM1_CH2) |   \
-                                     PIN_MODE_INPUT(GPIOA_X10) |            \
-                                     PIN_MODE_INPUT(GPIOA_X11) |            \
-                                     PIN_MODE_INPUT(GPIOA_X12) |            \
+                                     PIN_MODE_INPUT(GPIOA_PIN10) |          \
+                                     PIN_MODE_INPUT(GPIOA_PIN11) |          \
+                                     PIN_MODE_INPUT(GPIOA_PIN12) |          \
                                      PIN_MODE_ALTERNATE(GPIOA_SWDIO) |      \
                                      PIN_MODE_ALTERNATE(GPIOA_SWCLK) |      \
-                                     PIN_MODE_INPUT(GPIOA_X15))
+                                     PIN_MODE_INPUT(GPIOA_PIN15))
 #define VAL_GPIOA_OTYPER            (PIN_OTYPE_PUSHPULL(GPIOA_AIO0) |       \
                                      PIN_OTYPE_PUSHPULL(GPIOA_AIO1) |       \
                                      PIN_OTYPE_PUSHPULL(GPIOA_AIO2) |       \
@@ -186,12 +186,12 @@ limitations under the License.
                                      PIN_OTYPE_PUSHPULL(GPIOA_AIO7) |       \
                                      PIN_OTYPE_PUSHPULL(GPIOA_TIM1_CH1) |   \
                                      PIN_OTYPE_PUSHPULL(GPIOA_TIM1_CH2) |   \
-                                     PIN_OTYPE_PUSHPULL(GPIOA_X10) |        \
-                                     PIN_OTYPE_PUSHPULL(GPIOA_X11) |        \
-                                     PIN_OTYPE_PUSHPULL(GPIOA_X12) |        \
+                                     PIN_OTYPE_PUSHPULL(GPIOA_PIN10) |      \
+                                     PIN_OTYPE_PUSHPULL(GPIOA_PIN11) |      \
+                                     PIN_OTYPE_PUSHPULL(GPIOA_PIN12) |      \
                                      PIN_OTYPE_PUSHPULL(GPIOA_SWDIO) |      \
                                      PIN_OTYPE_PUSHPULL(GPIOA_SWCLK) |      \
-                                     PIN_OTYPE_PUSHPULL(GPIOA_X15))
+                                     PIN_OTYPE_PUSHPULL(GPIOA_PIN15))
 #define VAL_GPIOA_OSPEEDR           (PIN_OSPEED_100M(GPIOA_AIO0) |          \
                                      PIN_OSPEED_100M(GPIOA_AIO1) |          \
                                      PIN_OSPEED_100M(GPIOA_AIO2) |          \
@@ -202,12 +202,12 @@ limitations under the License.
                                      PIN_OSPEED_100M(GPIOA_AIO7) |          \
                                      PIN_OSPEED_100M(GPIOA_TIM1_CH1) |      \
                                      PIN_OSPEED_100M(GPIOA_TIM1_CH2) |      \
-                                     PIN_OSPEED_2M(GPIOA_X10) |             \
-                                     PIN_OSPEED_2M(GPIOA_X11) |             \
-                                     PIN_OSPEED_2M(GPIOA_X12) |             \
+                                     PIN_OSPEED_2M(GPIOA_PIN10) |           \
+                                     PIN_OSPEED_2M(GPIOA_PIN11) |           \
+                                     PIN_OSPEED_2M(GPIOA_PIN12) |           \
                                      PIN_OSPEED_100M(GPIOA_SWDIO) |         \
                                      PIN_OSPEED_100M(GPIOA_SWCLK) |         \
-                                     PIN_OSPEED_2M(GPIOA_X15))
+                                     PIN_OSPEED_2M(GPIOA_PIN15))
 #define VAL_GPIOA_PUPDR             (PIN_PUPDR_FLOATING(GPIOA_AIO0) |       \
                                      PIN_PUPDR_FLOATING(GPIOA_AIO1) |       \
                                      PIN_PUPDR_FLOATING(GPIOA_AIO2) |       \
@@ -218,12 +218,12 @@ limitations under the License.
                                      PIN_PUPDR_FLOATING(GPIOA_AIO7) |       \
                                      PIN_PUPDR_FLOATING(GPIOA_TIM1_CH1) |   \
                                      PIN_PUPDR_FLOATING(GPIOA_TIM1_CH2) |   \
-                                     PIN_PUPDR_FLOATING(GPIOA_X10) |        \
-                                     PIN_PUPDR_FLOATING(GPIOA_X11) |        \
-                                     PIN_PUPDR_FLOATING(GPIOA_X12) |        \
+                                     PIN_PUPDR_FLOATING(GPIOA_PIN10) |      \
+                                     PIN_PUPDR_FLOATING(GPIOA_PIN11) |      \
+                                     PIN_PUPDR_FLOATING(GPIOA_PIN12) |      \
                                      PIN_PUPDR_PULLUP(GPIOA_SWDIO) |        \
                                      PIN_PUPDR_PULLDOWN(GPIOA_SWCLK) |      \
-                                     PIN_PUPDR_FLOATING(GPIOA_X15))
+                                     PIN_PUPDR_FLOATING(GPIOA_PIN15))
 #define VAL_GPIOA_ODR               (PIN_ODR_LOW(GPIOA_AIO0) |              \
                                      PIN_ODR_LOW(GPIOA_AIO1) |              \
                                      PIN_ODR_LOW(GPIOA_AIO2) |              \
@@ -234,12 +234,12 @@ limitations under the License.
                                      PIN_ODR_LOW(GPIOA_AIO7) |              \
                                      PIN_ODR_LOW(GPIOA_TIM1_CH1) |          \
                                      PIN_ODR_LOW(GPIOA_TIM1_CH2) |          \
-                                     PIN_ODR_LOW(GPIOA_X10) |               \
-                                     PIN_ODR_LOW(GPIOA_X11) |               \
-                                     PIN_ODR_LOW(GPIOA_X12) |               \
+                                     PIN_ODR_LOW(GPIOA_PIN10) |             \
+                                     PIN_ODR_LOW(GPIOA_PIN11) |             \
+                                     PIN_ODR_LOW(GPIOA_PIN12) |             \
                                      PIN_ODR_LOW(GPIOA_SWDIO) |             \
                                      PIN_ODR_LOW(GPIOA_SWCLK) |             \
-                                     PIN_ODR_LOW(GPIOA_X15))
+                                     PIN_ODR_LOW(GPIOA_PIN15))
 #define VAL_GPIOA_AFRL              (PIN_AFIO_AF(GPIOA_AIO0, 0) |           \
                                      PIN_AFIO_AF(GPIOA_AIO1, 0) |           \
                                      PIN_AFIO_AF(GPIOA_AIO2, 0) |           \
@@ -250,12 +250,12 @@ limitations under the License.
                                      PIN_AFIO_AF(GPIOA_AIO7, 0))
 #define VAL_GPIOA_AFRH              (PIN_AFIO_AF(GPIOA_TIM1_CH1, 1) |       \
                                      PIN_AFIO_AF(GPIOA_TIM1_CH2, 1) |       \
-                                     PIN_AFIO_AF(GPIOA_X10, 0) |            \
-                                     PIN_AFIO_AF(GPIOA_X11, 0) |            \
-                                     PIN_AFIO_AF(GPIOA_X12, 0) |            \
+                                     PIN_AFIO_AF(GPIOA_PIN10, 0) |          \
+                                     PIN_AFIO_AF(GPIOA_PIN11, 0) |          \
+                                     PIN_AFIO_AF(GPIOA_PIN12, 0) |          \
                                      PIN_AFIO_AF(GPIOA_SWDIO, 0) |          \
                                      PIN_AFIO_AF(GPIOA_SWCLK, 0) |          \
-                                     PIN_AFIO_AF(GPIOA_X15, 0))
+                                     PIN_AFIO_AF(GPIOA_PIN15, 0))
 
 /*
  * GPIOB setup:
@@ -279,100 +279,100 @@ limitations under the License.
  */
 #define VAL_GPIOB_MODER             (PIN_MODE_ANALOG(GPIOB_IVAL) |          \
                                      PIN_MODE_ANALOG(GPIOB_VREF) |          \
-                                     PIN_MODE_INPUT(GPIOB_X2) |             \
+                                     PIN_MODE_INPUT(GPIOB_PIN2) |           \
                                      PIN_MODE_ALTERNATE(GPIOB_SWO) |        \
-                                     PIN_MODE_INPUT(GPIOB_X4) |             \
+                                     PIN_MODE_INPUT(GPIOB_PIN4) |           \
                                      PIN_MODE_OUTPUT(GPIOB_MOTOR_EN) |      \
                                      PIN_MODE_OUTPUT(GPIOB_POS_NEN) |       \
                                      PIN_MODE_INPUT(GPIOB_POS_TCCEN) |      \
-                                     PIN_MODE_INPUT(GPIOB_X8) |             \
-                                     PIN_MODE_INPUT(GPIOB_X9) |             \
+                                     PIN_MODE_INPUT(GPIOB_PIN8) |           \
+                                     PIN_MODE_INPUT(GPIOB_PIN9) |           \
                                      PIN_MODE_ALTERNATE(GPIOB_USART3_TX) |  \
                                      PIN_MODE_ALTERNATE(GPIOB_USART3_RX) |  \
                                      PIN_MODE_INPUT(GPIOB_LED1) |           \
                                      PIN_MODE_INPUT(GPIOB_LED2) |           \
                                      PIN_MODE_OUTPUT(GPIOB_RS485_TXEN) |    \
-                                     PIN_MODE_INPUT(GPIOB_X15))
+                                     PIN_MODE_INPUT(GPIOB_PIN15))
 #define VAL_GPIOB_OTYPER            (PIN_OTYPE_PUSHPULL(GPIOB_IVAL) |       \
                                      PIN_OTYPE_PUSHPULL(GPIOB_VREF) |       \
-                                     PIN_OTYPE_PUSHPULL(GPIOB_X2) |         \
+                                     PIN_OTYPE_PUSHPULL(GPIOB_PIN2) |       \
                                      PIN_OTYPE_PUSHPULL(GPIOB_SWO) |        \
-                                     PIN_OTYPE_PUSHPULL(GPIOB_X4) |         \
+                                     PIN_OTYPE_PUSHPULL(GPIOB_PIN4) |       \
                                      PIN_OTYPE_PUSHPULL(GPIOB_MOTOR_EN) |   \
                                      PIN_OTYPE_PUSHPULL(GPIOB_POS_NEN) |    \
                                      PIN_OTYPE_PUSHPULL(GPIOB_POS_TCCEN) |  \
-                                     PIN_OTYPE_PUSHPULL(GPIOB_X8) |         \
-                                     PIN_OTYPE_PUSHPULL(GPIOB_X9) |         \
+                                     PIN_OTYPE_PUSHPULL(GPIOB_PIN8) |       \
+                                     PIN_OTYPE_PUSHPULL(GPIOB_PIN9) |       \
                                      PIN_OTYPE_PUSHPULL(GPIOB_USART3_TX) |  \
                                      PIN_OTYPE_PUSHPULL(GPIOB_USART3_RX) |  \
                                      PIN_OTYPE_PUSHPULL(GPIOB_LED1) |       \
                                      PIN_OTYPE_PUSHPULL(GPIOB_LED2) |       \
                                      PIN_OTYPE_PUSHPULL(GPIOB_RS485_TXEN) | \
-                                     PIN_OTYPE_PUSHPULL(GPIOB_X15))
+                                     PIN_OTYPE_PUSHPULL(GPIOB_PIN15))
 #define VAL_GPIOB_OSPEEDR           (PIN_OSPEED_100M(GPIOB_IVAL) |          \
                                      PIN_OSPEED_100M(GPIOB_VREF) |          \
-                                     PIN_OSPEED_100M(GPIOB_X2) |            \
+                                     PIN_OSPEED_100M(GPIOB_PIN2) |          \
                                      PIN_OSPEED_100M(GPIOB_SWO) |           \
-                                     PIN_OSPEED_100M(GPIOB_X4) |            \
+                                     PIN_OSPEED_100M(GPIOB_PIN4) |          \
                                      PIN_OSPEED_100M(GPIOB_MOTOR_EN) |      \
                                      PIN_OSPEED_100M(GPIOB_POS_NEN) |       \
                                      PIN_OSPEED_100M(GPIOB_POS_TCCEN) |     \
-                                     PIN_OSPEED_100M(GPIOB_X8) |            \
-                                     PIN_OSPEED_100M(GPIOB_X9) |            \
+                                     PIN_OSPEED_100M(GPIOB_PIN8) |          \
+                                     PIN_OSPEED_100M(GPIOB_PIN9) |          \
                                      PIN_OSPEED_100M(GPIOB_USART3_TX) |     \
                                      PIN_OSPEED_100M(GPIOB_USART3_RX) |     \
                                      PIN_OSPEED_100M(GPIOB_LED1) |          \
                                      PIN_OSPEED_100M(GPIOB_LED2) |          \
                                      PIN_OSPEED_100M(GPIOB_RS485_TXEN) |    \
-                                     PIN_OSPEED_100M(GPIOB_X15))
+                                     PIN_OSPEED_100M(GPIOB_PIN15))
 #define VAL_GPIOB_PUPDR             (PIN_PUPDR_FLOATING(GPIOB_IVAL) |       \
                                      PIN_PUPDR_FLOATING(GPIOB_VREF) |       \
-                                     PIN_PUPDR_FLOATING(GPIOB_X2) |         \
+                                     PIN_PUPDR_FLOATING(GPIOB_PIN2) |       \
                                      PIN_PUPDR_FLOATING(GPIOB_SWO) |        \
-                                     PIN_PUPDR_FLOATING(GPIOB_X4) |         \
+                                     PIN_PUPDR_FLOATING(GPIOB_PIN4) |       \
                                      PIN_PUPDR_FLOATING(GPIOB_MOTOR_EN) |   \
                                      PIN_PUPDR_FLOATING(GPIOB_POS_NEN) |    \
                                      PIN_PUPDR_PULLUP(GPIOB_POS_TCCEN) |    \
-                                     PIN_PUPDR_FLOATING(GPIOB_X8) |         \
-                                     PIN_PUPDR_FLOATING(GPIOB_X9) |         \
+                                     PIN_PUPDR_FLOATING(GPIOB_PIN8) |       \
+                                     PIN_PUPDR_FLOATING(GPIOB_PIN9) |       \
                                      PIN_PUPDR_FLOATING(GPIOB_USART3_TX) |  \
                                      PIN_PUPDR_FLOATING(GPIOB_USART3_RX) |  \
                                      PIN_PUPDR_FLOATING(GPIOB_LED1) |       \
                                      PIN_PUPDR_FLOATING(GPIOB_LED2) |       \
                                      PIN_PUPDR_FLOATING(GPIOB_RS485_TXEN) | \
-                                     PIN_PUPDR_FLOATING(GPIOB_X15))
+                                     PIN_PUPDR_FLOATING(GPIOB_PIN15))
 #define VAL_GPIOB_ODR               (PIN_ODR_LOW(GPIOB_IVAL) |              \
                                      PIN_ODR_LOW(GPIOB_VREF) |              \
-                                     PIN_ODR_LOW(GPIOB_X2) |                \
+                                     PIN_ODR_LOW(GPIOB_PIN2) |              \
                                      PIN_ODR_LOW(GPIOB_SWO) |               \
-                                     PIN_ODR_LOW(GPIOB_X4) |                \
+                                     PIN_ODR_LOW(GPIOB_PIN4) |              \
                                      PIN_ODR_LOW(GPIOB_MOTOR_EN) |          \
                                      PIN_ODR_HIGH(GPIOB_POS_NEN) |          \
                                      PIN_ODR_LOW(GPIOB_POS_TCCEN) |         \
-                                     PIN_ODR_LOW(GPIOB_X8) |                \
-                                     PIN_ODR_LOW(GPIOB_X9) |                \
+                                     PIN_ODR_LOW(GPIOB_PIN8) |              \
+                                     PIN_ODR_LOW(GPIOB_PIN9) |              \
                                      PIN_ODR_LOW(GPIOB_USART3_TX) |         \
                                      PIN_ODR_LOW(GPIOB_USART3_RX) |         \
                                      PIN_ODR_LOW(GPIOB_LED1) |              \
                                      PIN_ODR_LOW(GPIOB_LED2) |              \
                                      PIN_ODR_LOW(GPIOB_RS485_TXEN) |        \
-                                     PIN_ODR_LOW(GPIOB_X15))
+                                     PIN_ODR_LOW(GPIOB_PIN15))
 #define VAL_GPIOB_AFRL              (PIN_AFIO_AF(GPIOB_IVAL, 0) |           \
                                      PIN_AFIO_AF(GPIOB_VREF, 0) |           \
-                                     PIN_AFIO_AF(GPIOB_X2, 0) |             \
+                                     PIN_AFIO_AF(GPIOB_PIN2, 0) |           \
                                      PIN_AFIO_AF(GPIOB_SWO, 0) |            \
-                                     PIN_AFIO_AF(GPIOB_X4, 0) |             \
+                                     PIN_AFIO_AF(GPIOB_PIN4, 0) |           \
                                      PIN_AFIO_AF(GPIOB_MOTOR_EN, 0) |       \
                                      PIN_AFIO_AF(GPIOB_POS_NEN, 0) |        \
                                      PIN_AFIO_AF(GPIOB_POS_TCCEN, 0))
-#define VAL_GPIOB_AFRH              (PIN_AFIO_AF(GPIOB_X8, 0) |             \
-                                     PIN_AFIO_AF(GPIOB_X9, 0) |             \
+#define VAL_GPIOB_AFRH              (PIN_AFIO_AF(GPIOB_PIN8, 0) |           \
+                                     PIN_AFIO_AF(GPIOB_PIN9, 0) |           \
                                      PIN_AFIO_AF(GPIOB_USART3_TX, 7) |      \
                                      PIN_AFIO_AF(GPIOB_USART3_RX, 7) |      \
                                      PIN_AFIO_AF(GPIOB_LED1, 0) |           \
                                      PIN_AFIO_AF(GPIOB_LED2, 0) |           \
                                      PIN_AFIO_AF(GPIOB_RS485_TXEN, 0) |     \
-                                     PIN_AFIO_AF(GPIOB_X15, 0))
+                                     PIN_AFIO_AF(GPIOB_PIN15, 0))
 
 /*
  * GPIOC setup:
@@ -406,7 +406,7 @@ limitations under the License.
                                      PIN_MODE_INPUT(GPIOC_VIO2) |           \
                                      PIN_MODE_INPUT(GPIOC_VIO1)  |          \
                                      PIN_MODE_INPUT(GPIOC_VIO0)  |          \
-                                     PIN_MODE_INPUT(GPIOC_X12) |            \
+                                     PIN_MODE_INPUT(GPIOC_PIN12) |          \
                                      PIN_MODE_INPUT(GPIOC_ADDR0)  |         \
                                      PIN_MODE_INPUT(GPIOC_ADDR1)  |         \
                                      PIN_MODE_INPUT(GPIOC_ADDROUT))
@@ -422,7 +422,7 @@ limitations under the License.
                                      PIN_OTYPE_PUSHPULL(GPIOC_VIO2) |       \
                                      PIN_OTYPE_PUSHPULL(GPIOC_VIO1)  |      \
                                      PIN_OTYPE_PUSHPULL(GPIOC_VIO0)  |      \
-                                     PIN_OTYPE_PUSHPULL(GPIOC_X12) |        \
+                                     PIN_OTYPE_PUSHPULL(GPIOC_PIN12) |      \
                                      PIN_OTYPE_PUSHPULL(GPIOC_ADDR0)  |     \
                                      PIN_OTYPE_PUSHPULL(GPIOC_ADDR1)  |     \
                                      PIN_OTYPE_PUSHPULL(GPIOC_ADDROUT))
@@ -438,7 +438,7 @@ limitations under the License.
                                      PIN_OSPEED_100M(GPIOC_VIO2) |          \
                                      PIN_OSPEED_100M(GPIOC_VIO1)  |         \
                                      PIN_OSPEED_100M(GPIOC_VIO0)  |         \
-                                     PIN_OSPEED_2M(GPIOC_X12) |             \
+                                     PIN_OSPEED_2M(GPIOC_PIN12) |           \
                                      PIN_OSPEED_100M(GPIOC_ADDR0)  |        \
                                      PIN_OSPEED_100M(GPIOC_ADDR1)  |        \
                                      PIN_OSPEED_100M(GPIOC_ADDROUT))
@@ -454,7 +454,7 @@ limitations under the License.
                                      PIN_PUPDR_FLOATING(GPIOC_VIO2) |       \
                                      PIN_PUPDR_FLOATING(GPIOC_VIO1)  |      \
                                      PIN_PUPDR_FLOATING(GPIOC_VIO0)  |      \
-                                     PIN_PUPDR_FLOATING(GPIOC_X12) |        \
+                                     PIN_PUPDR_FLOATING(GPIOC_PIN12) |      \
                                      PIN_PUPDR_FLOATING(GPIOC_ADDR0)  |     \
                                      PIN_PUPDR_FLOATING(GPIOC_ADDR1)  |     \
                                      PIN_PUPDR_FLOATING(GPIOC_ADDROUT))
@@ -470,7 +470,7 @@ limitations under the License.
                                      PIN_ODR_LOW(GPIOC_VIO2) |              \
                                      PIN_ODR_LOW(GPIOC_VIO1)  |             \
                                      PIN_ODR_LOW(GPIOC_VIO0)  |             \
-                                     PIN_ODR_LOW(GPIOC_X12) |               \
+                                     PIN_ODR_LOW(GPIOC_PIN12) |             \
                                      PIN_ODR_LOW(GPIOC_ADDR0)  |            \
                                      PIN_ODR_LOW(GPIOC_ADDR1)  |            \
                                      PIN_ODR_LOW(GPIOC_ADDROUT))
@@ -486,7 +486,7 @@ limitations under the License.
                                      PIN_AFIO_AF(GPIOC_VIO2, 0) |           \
                                      PIN_AFIO_AF(GPIOC_VIO1 , 0) |          \
                                      PIN_AFIO_AF(GPIOC_VIO0 , 0) |          \
-                                     PIN_AFIO_AF(GPIOC_X12, 0) |            \
+                                     PIN_AFIO_AF(GPIOC_PIN12, 0) |          \
                                      PIN_AFIO_AF(GPIOC_ADDR0 , 0) |         \
                                      PIN_AFIO_AF(GPIOC_ADDR1 , 0) |         \
                                      PIN_AFIO_AF(GPIOC_ADDROUT , 0))
@@ -496,12 +496,12 @@ limitations under the License.
  *
  * PC2  - N/A                       (input floating).
  */
-#define VAL_GPIOD_MODER             (PIN_MODE_INPUT(GPIOD_X2))
-#define VAL_GPIOD_OTYPER            (PIN_OTYPE_PUSHPULL(GPIOD_X2))
-#define VAL_GPIOD_OSPEEDR           (PIN_OSPEED_2M(GPIOD_X2))
-#define VAL_GPIOD_PUPDR             (PIN_PUPDR_FLOATING(GPIOD_X2))
-#define VAL_GPIOD_ODR               (PIN_ODR_LOW(GPIOD_X2))
-#define VAL_GPIOD_AFRL              (PIN_AFIO_AF(GPIOD_X2, 0))
+#define VAL_GPIOD_MODER             (PIN_MODE_INPUT(GPIOD_PIN2))
+#define VAL_GPIOD_OTYPER            (PIN_OTYPE_PUSHPULL(GPIOD_PIN2))
+#define VAL_GPIOD_OSPEEDR           (PIN_OSPEED_2M(GPIOD_PIN2))
+#define VAL_GPIOD_PUPDR             (PIN_PUPDR_FLOATING(GPIOD_PIN2))
+#define VAL_GPIOD_ODR               (PIN_ODR_LOW(GPIOD_PIN2))
+#define VAL_GPIOD_AFRL              (PIN_AFIO_AF(GPIOD_PIN2, 0))
 #define VAL_GPIOD_AFRH              (0)
 
 #if !defined(_FROM_ASM_)
