@@ -215,3 +215,15 @@ ULIBS =
 
 RULESPATH = $(CHIBIOS)/os/ports/GCC/ARMCMx
 include $(RULESPATH)/rules.mk
+
+
+flash: $(BUILDDIR)/$(PROJECT).bin
+	st-flash write $< 0x8000000
+
+debug-serve:
+	st-util
+
+debug: $(BUILDDIR)/$(PROJECT).elf
+	arm-none-eabi-gdb $<
+
+.PHONY: flash debug debug-serve
