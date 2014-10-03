@@ -1,0 +1,101 @@
+Configuration	Cuddlebot
+STM32CubeMX 	4.3.0
+Date	08/01/2014
+MCU	STM32F405RGTx
+
+
+
+PERIPHERALS	MODES	FUNCTIONS	PINS
+ADC2	IN0	ADC2_IN0	PA0-WKUP
+ADC2	IN1	ADC2_IN1	PA1
+ADC2	IN2	ADC2_IN2	PA2
+ADC2	IN3	ADC2_IN3	PA3
+ADC2	IN4	ADC2_IN4	PA4
+ADC2	IN5	ADC2_IN5	PA5
+ADC2	IN6	ADC2_IN6	PA6
+ADC2	IN7	ADC2_IN7	PA7
+ADC2	IN8	ADC2_IN8	PB0
+ADC2	IN9	ADC2_IN9	PB1
+ADC2	IN10	ADC2_IN10	PC0
+ADC2	IN11	ADC2_IN11	PC1
+ADC2	IN12	ADC2_IN12	PC2
+ADC2	IN13	ADC2_IN13	PC3
+RCC	Crystal/Ceramic Resonator	RCC_OSC_IN	PH0-OSC_IN
+RCC	Crystal/Ceramic Resonator	RCC_OSC_OUT	PH1-OSC_OUT
+SYS	SWD and Asynchronous Trace	SYS_JTMS-SWDIO	PA13
+SYS	SWD and Asynchronous Trace	SYS_JTCK-SWCLK	PA14
+SYS	SWD and Asynchronous Trace	SYS_JTDO-SWO	PB3
+TIM1	Encoder Mode	TIM1_CH1	PA8
+TIM1	Encoder Mode	TIM1_CH2	PA9
+
+
+
+Pin Nb	PINs	FUNCTIONs
+2	PC13-ANTI_TAMP	EVENTOUT
+3	PC14-OSC32_IN	EVENTOUT
+4	PC15-OSC32_OUT	EVENTOUT
+5	PH0-OSC_IN	RCC_OSC_IN
+6	PH1-OSC_OUT	RCC_OSC_OUT
+8	PC0	ADCx_IN10
+9	PC1	ADCx_IN11
+10	PC2	ADCx_IN12
+11	PC3	ADCx_IN13
+14	PA0-WKUP	ADCx_IN0
+15	PA1	ADCx_IN1
+16	PA2	ADCx_IN2
+17	PA3	ADCx_IN3
+20	PA4	ADCx_IN4
+21	PA5	ADCx_IN5
+22	PA6	ADCx_IN6
+23	PA7	ADCx_IN7
+24	PC4	EVENTOUT
+25	PC5	EVENTOUT
+26	PB0	ADCx_IN8
+27	PB1	ADCx_IN9
+29	PB10*	USART3_TX
+30	PB11*	USART3_RX
+33	PB12	EVENTOUT
+34	PB13	EVENTOUT
+35	PB14	EVENTOUT
+37	PC6	EVENTOUT
+38	PC7	EVENTOUT
+39	PC8	EVENTOUT
+40	PC9	EVENTOUT
+41	PA8	S_TIM1_CH1
+42	PA9	S_TIM1_CH2
+46	PA13	SYS_JTMS-SWDIO
+49	PA14	SYS_JTCK-SWCLK
+51	PC10	EVENTOUT
+52	PC11	EVENTOUT
+55	PB3	SYS_JTDO-SWO
+57	PB5	EVENTOUT
+58	PB6	EVENTOUT
+59	PB7	EVENTOUT
+
+
+
+SOFTWARE PROJECT
+
+Project Settings : 
+Project Name : Cuddlebot
+Project Folder : \\vmware-host\Shared Folders\mikepb\Developer\ChibiOS_2.6.5\projects\Cuddlebot\STM32CubeMX
+Toolchain / IDE : 
+Firmware Package Name and Version : 
+
+
+Code Generation Settings : 
+STM32Cube Firmware Library Package : Copy all used libraries into the project folder
+Generate peripheral initialization as a pair of '.c/.h' files per IP : No
+Backup previously generated files when re-generating : No
+Delete previously generated files when not re-generated : Yes
+Set all free pins as analog (to optimize the power consumption) : No
+
+
+Toolchains Settings : 
+Compiler Optimizations : Balanced Size/Speed
+
+
+
+
+
+
