@@ -32,8 +32,8 @@ static const PWMConfig pwmcfg = {
 		{PWM_OUTPUT_DISABLED, NULL}
 	},
 	// HW dependent part.
-	0,
-	0
+	.cr2 = 0,
+	.dier = 0
 };
 
 /*

@@ -118,8 +118,6 @@ limitations under the License.
 
 #define GPIOD_X2                    2 // unused
 
-#define GPIO
-
 /*
  * I/O ports initial setup, this configuration is established soon after reset
  * in the initialization code.

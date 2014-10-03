@@ -29,6 +29,8 @@ limitations under the License.
 #include <hal.h>
 
 #include "address.h"
+#include "comm.h"
+#include "motor.h"
 
 // Application entry point.
 int main(void) {
@@ -42,12 +44,37 @@ int main(void) {
 
 	// read board address
 	cm_address_read();
+	// initialize communications
+	cm_comm_init();
+	// initialize motor
+	// cm_motor_init();
 
-	// start serial driver
-	sdStart(&SD3, NULL);
+	// enable LED1 and LED2
+	palSetPadMode(GPIOB, GPIOB_LED1, PAL_MODE_OUTPUT_PUSHPULL);
+	palSetPadMode(GPIOB, GPIOB_LED2, PAL_MODE_OUTPUT_PUSHPULL);
+	// toggle LED1
+	palTogglePad(GPIOB, GPIOB_LED1);
+
+	// enable RS-485 transmitter
+	palSetPad(GPIOB, GPIOB_RS485_TXEN);
 
 	for (;;) {
-		chSequentialStreamWrite(&SD3, (const uint8_t *)"hello world!\n", 13);
+		// toggle LED1 and LED2
+		palTogglePad(GPIOB, GPIOB_LED1);
+		palTogglePad(GPIOB, GPIOB_LED2);
+
+		// enable RS-485 transmitter
+		// palSetPad(GPIOB, GPIOB_RS485_TXEN);
+
+		// write hello world
+		const uint8_t *helloworld = (uint8_t *)("Hello World!");
+		uartStopSend(&UARTD3);
+		uartStartSend(&UARTD3, sizeof(helloworld), helloworld);
+
+		// disable RS-485 transmitter
+		// palClearPad(GPIOB, GPIOB_RS485_TXEN);
+
+		// sleep
 		chThdSleepMilliseconds(500);
 	}
 
