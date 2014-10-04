@@ -56,10 +56,29 @@ int main(void) {
 
 		// write hello world
 		uartStopSend(&UARTD3);
-		uartStartSend(&UARTD3, 14, (uint8_t *)"Hello World!\r\n");
+
+		switch (cm_address) {
+		case ADDRESS_RIBS:
+			uartStartSend(&UARTD3, 22, (uint8_t *)"I am the ribs motor!\r\n");
+			break;
+		case ADDRESS_HEAD_PITCH:
+			uartStartSend(&UARTD3, 28, (uint8_t *)"I am the head pitch motor!\r\n");
+			break;
+		case ADDRESS_HEAD_YAW:
+			uartStartSend(&UARTD3, 26, (uint8_t *)"I am the head yaw motor!\r\n");
+			break;
+		case ADDRESS_SPINE:
+			uartStartSend(&UARTD3, 23, (uint8_t *)"I am the spine motor!\r\n");
+			break;
+		case ADDRESS_PURR:
+			uartStartSend(&UARTD3, 22, (uint8_t *)"I am the purr motor!\r\n");
+			break;
+		default:
+			uartStartSend(&UARTD3, 20, (uint8_t *)"I have no address!\r\n");
+		}
 
 		// disable RS-485 transmitter
-		chThdSleepMilliseconds(2);
+		chThdSleepMilliseconds(3);
 		palClearPad(GPIOB, GPIOB_RS485_TXEN);
 
 		// sleep

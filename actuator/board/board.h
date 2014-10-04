@@ -439,9 +439,9 @@ limitations under the License.
                                      PIN_OSPEED_100M(GPIOC_VIO1)  |         \
                                      PIN_OSPEED_100M(GPIOC_VIO0)  |         \
                                      PIN_OSPEED_2M(GPIOC_PIN12) |           \
-                                     PIN_OSPEED_100M(GPIOC_ADDR0)  |        \
-                                     PIN_OSPEED_100M(GPIOC_ADDR1)  |        \
-                                     PIN_OSPEED_100M(GPIOC_ADDROUT))
+                                     PIN_OSPEED_2M(GPIOC_ADDR0)  |          \
+                                     PIN_OSPEED_2M(GPIOC_ADDR1)  |          \
+                                     PIN_OSPEED_2M(GPIOC_ADDROUT))
 #define VAL_GPIOC_PUPDR             (PIN_PUPDR_FLOATING(GPIOC_TORQUE) |     \
                                      PIN_PUPDR_FLOATING(GPIOC_TEMP) |       \
                                      PIN_PUPDR_FLOATING(GPIOC_POS_SIN) |    \

@@ -34,11 +34,13 @@ The actuator boards are arranged from rear to head of the CuddleBot
 in the following order:
 
         Conn     ADDR0/1    Slave                H1 H0 L1 L0    ADDR
-Rear    CN105    VCC HIZ    ADDRESS_RIBS          1  1  1  0    0x01
-        CN107    VCC VCC    ADDRESS_PURR          1  1  1  1    0x10
-        CN103    VCC GND    ADDRESS_HEAD_PITCH    1  0  1  0    0x02
-        CN102    GND VCC    ADDRESS_SPINE         0  1  0  1    0x08
-Head    CN101    GND GND    ADDRESS_HEAD_YAW      0  0  0  0    0x04
+Rear    CN105    VCC HIZ    ADDRESS_RIBS          1  1  0  1    0x10
+        CN107    VCC VCC    ADDRESS_PURR          1  1  1  1    0x08
+        CN103    VCC GND    ADDRESS_SPINE         0  1  0  1    0x04
+        CN102    GND VCC    ADDRESS_HEAD_YAW      1  0  1  0    0x02
+Head    CN101    GND GND    ADDRESS_HEAD_PITCH    0  0  0  0    0x01
+
+These values were measured rather than calculated.
 
 This function should be invoked during system initialization and
 before configuring interrupt handlers and higher priority threads.
@@ -47,30 +49,33 @@ before configuring interrupt handlers and higher priority threads.
 void cm_address_read(void) {
 	uint32_t addr = 0;
 
-	// set addrout to vdd
-	palSetPadMode(GPIOC, GPIOC_ADDROUT, PAL_MODE_INPUT_PULLDOWN);
+	// set addrout to output push-pull
+	palSetPadMode(GPIOC, GPIOC_ADDROUT, PAL_MODE_OUTPUT_PUSHPULL);
+
+	// set to low
+	palClearPad(GPIOC, GPIOC_ADDROUT);
 	// wait to stabilize
 	chThdSleepMicroseconds(10);
 	// read L0
 	if (palReadPad(GPIOC, GPIOC_ADDR0)) {
-		addr |= 1 << 0;
+		addr |= 0b0001;
 	}
 	// read L1
 	if (palReadPad(GPIOC, GPIOC_ADDR1)) {
-		addr |= 1 << 1;
+		addr |= 0b0010;
 	}
 
-	// set addrout to vcc
-	palSetPadMode(GPIOC, GPIOC_ADDROUT, PAL_MODE_INPUT_PULLUP);
+	// set addrout to high
+	palSetPad(GPIOC, GPIOC_ADDROUT);
 	// wait to stabilize
 	chThdSleepMicroseconds(10);
 	// read H0
 	if (palReadPad(GPIOC, GPIOC_ADDR0)) {
-		addr |= 1 << 2;
+		addr |= 0b0100;
 	}
 	// read H1
 	if (palReadPad(GPIOC, GPIOC_ADDR1)) {
-		addr |= 1 << 3;
+		addr |= 0b1000;
 	}
 
 	// disable addrout port
@@ -78,11 +83,11 @@ void cm_address_read(void) {
 
 	// map addresses
 	switch (addr) {
-	case 0b1110: cm_address = ADDRESS_RIBS; break;
-	case 0b1111: cm_address = ADDRESS_PURR; break;
-	case 0b1010: cm_address = ADDRESS_HEAD_PITCH; break;
+	case 0b0000: cm_address = ADDRESS_HEAD_PITCH; break;
+	case 0b1010: cm_address = ADDRESS_HEAD_YAW; break;
 	case 0b0101: cm_address = ADDRESS_SPINE; break;
-	case 0b0000: cm_address = ADDRESS_HEAD_YAW; break;
+	case 0b1111: cm_address = ADDRESS_PURR; break;
+	case 0b1101: cm_address = ADDRESS_RIBS; break;
 	default: cm_address = ADDRESS_INVALID;
 	}
 }
