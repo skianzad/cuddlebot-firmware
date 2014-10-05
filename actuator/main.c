@@ -27,7 +27,6 @@ limitations under the License.
 
 #include <ch.h>
 #include <hal.h>
-#include <chprintf.h>
 
 #include "address.h"
 #include "motor.h"
@@ -46,34 +45,33 @@ int main(void) {
 	// read board address
 	cm_address_read();
 
-	// start rs-485 serial driver
+	// initialize and start rs-485 serial driver
+	rsdInit();
 	rsdStart();
 
 	// initialize motor
 	// cm_motor_init();
 
 	for (;;) {
-		chprintf((BaseSequentialStream *)&SD3, "Hello World!\r\n");
-
 		// send address
 		switch (cm_address) {
 		case ADDRESS_RIBS:
-			chprintf((BaseSequentialStream *)&SD3, "I am the ribs motor!\r\n");
+			rsdSend(22, (uint8_t *)"I am the ribs motor!\r\n");
 			break;
 		case ADDRESS_HEAD_PITCH:
-			chprintf((BaseSequentialStream *)&SD3, "I am the head pitch motor!\r\n");
+			rsdSend(28, (uint8_t *)"I am the head pitch motor!\r\n");
 			break;
 		case ADDRESS_HEAD_YAW:
-			chprintf((BaseSequentialStream *)&SD3, "I am the head yaw motor!\r\n");
+			rsdSend(26, (uint8_t *)"I am the head yaw motor!\r\n");
 			break;
 		case ADDRESS_SPINE:
-			chprintf((BaseSequentialStream *)&SD3, "I am the spine motor!\r\n");
+			rsdSend(23, (uint8_t *)"I am the spine motor!\r\n");
 			break;
 		case ADDRESS_PURR:
-			chprintf((BaseSequentialStream *)&SD3, "I am the purr motor!\r\n");
+			rsdSend(22, (uint8_t *)"I am the purr motor!\r\n");
 			break;
 		default:
-			chprintf((BaseSequentialStream *)&SD3, "I have no address!\r\n");
+			rsdSend(20, (uint8_t *)"I have no address!\r\n");
 		}
 
 		// sleep

@@ -89,11 +89,11 @@ CSRC = $(PORTSRC) \
        $(HALSRC) \
        $(PLATFORMSRC) \
        $(BOARDSRC) \
-       $(CHIBIOS)/os/various/chprintf.c \
        \
        address.c \
        motor.c \
        rs485.c \
+       rs485_lld.c \
        sensor.c \
        \
        main.c
