@@ -29,8 +29,8 @@ limitations under the License.
 #include <hal.h>
 
 #include "address.h"
-#include "comm.h"
 #include "motor.h"
+#include "rs485.h"
 
 // Application entry point.
 int main(void) {
@@ -44,42 +44,35 @@ int main(void) {
 
 	// read board address
 	cm_address_read();
-	// initialize communications
-	cm_comm_init();
+
+	// initialize and start rs-485 serial driver
+	rsdInit();
+	rsdStart();
+
 	// initialize motor
 	// cm_motor_init();
 
 	for (;;) {
-		// enable RS-485 transmitter
-		palSetPad(GPIOB, GPIOB_RS485_TXEN);
-		chThdSleepMicroseconds(4);
-
-		// write hello world
-		uartStopSend(&UARTD3);
-
+		// send address
 		switch (cm_address) {
 		case ADDRESS_RIBS:
-			uartStartSend(&UARTD3, 22, (uint8_t *)"I am the ribs motor!\r\n");
+			rsdSend(22, (uint8_t *)"I am the ribs motor!\r\n");
 			break;
 		case ADDRESS_HEAD_PITCH:
-			uartStartSend(&UARTD3, 28, (uint8_t *)"I am the head pitch motor!\r\n");
+			rsdSend(28, (uint8_t *)"I am the head pitch motor!\r\n");
 			break;
 		case ADDRESS_HEAD_YAW:
-			uartStartSend(&UARTD3, 26, (uint8_t *)"I am the head yaw motor!\r\n");
+			rsdSend(26, (uint8_t *)"I am the head yaw motor!\r\n");
 			break;
 		case ADDRESS_SPINE:
-			uartStartSend(&UARTD3, 23, (uint8_t *)"I am the spine motor!\r\n");
+			rsdSend(23, (uint8_t *)"I am the spine motor!\r\n");
 			break;
 		case ADDRESS_PURR:
-			uartStartSend(&UARTD3, 22, (uint8_t *)"I am the purr motor!\r\n");
+			rsdSend(22, (uint8_t *)"I am the purr motor!\r\n");
 			break;
 		default:
-			uartStartSend(&UARTD3, 20, (uint8_t *)"I have no address!\r\n");
+			rsdSend(20, (uint8_t *)"I have no address!\r\n");
 		}
-
-		// disable RS-485 transmitter
-		chThdSleepMilliseconds(3);
-		palClearPad(GPIOB, GPIOB_RS485_TXEN);
 
 		// sleep
 		chThdSleepMilliseconds(500);

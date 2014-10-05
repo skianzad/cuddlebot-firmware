@@ -89,10 +89,13 @@ CSRC = $(PORTSRC) \
        $(HALSRC) \
        $(PLATFORMSRC) \
        $(BOARDSRC) \
+       \
        address.c \
-       comm.c \
        motor.c \
+       rs485.c \
+       rs485_lld.c \
        sensor.c \
+       \
        main.c
 
 # C++ sources that can be compiled in ARM or THUMB mode depending on the global
