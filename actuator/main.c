@@ -46,7 +46,6 @@ int main(void) {
 	cm_address_read();
 
 	// initialize and start rs-485 serial driver
-	rsdInit();
 	rsdStart();
 
 	// initialize motor

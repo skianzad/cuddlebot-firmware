@@ -47,17 +47,12 @@ const UARTConfig uartcfg = {
 	.cr3 = 0
 };
 
-void rsd_lld_init(void) {
-}
-
 void rsd_lld_start(void) {
 	// start UART driver
 	uartStart(&UARTD3, &uartcfg);
 }
 
 void rsd_lld_stop(void) {
-	// disable RS-485 driver
-	rsd_lld_tx_disable();
 	// stop UART driver
 	uartStop(&UARTD3);
 }

@@ -15,10 +15,6 @@ Vancouver, B.C. V6T 1Z4 Canada
 #include "rs485.h"
 #include "rs485_lld.h"
 
-void rsdInit(void) {
-	rsd_lld_init();
-}
-
 void rsdStart(void) {
 	// enable RS-485 driver
 	rsd_lld_tx_enable();

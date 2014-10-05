@@ -20,13 +20,6 @@ Low level RS-485 driver implementation. Not thread safe.
 
 /*
 
-Initialize the low level RS-485 driver.
-
-*/
-void rsd_lld_init(void);
-
-/*
-
 Start the low level RS-485 driver.
 
 */

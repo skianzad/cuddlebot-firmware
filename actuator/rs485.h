@@ -22,13 +22,6 @@ RS-485 driver implementation.
 
 /*
 
-Initialize the RS-485 driver.
-
-*/
-void rsdInit(void);
-
-/*
-
 Start the RS-485 driver.
 
 */
