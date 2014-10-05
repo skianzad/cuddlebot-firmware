@@ -48,10 +48,14 @@ int main(void) {
 	// start rs-485 serial driver
 	rsdStart();
 
-	// initialize motor
-	// cm_motor_init();
+	// start motor
+	motorStart();
+	int v = 100;
 
 	for (;;) {
+		motorSet(v);
+		v = -v;
+
 		// send address
 		switch (local_addr) {
 		case ADDRESS_RIBS:

@@ -14,32 +14,25 @@ Vancouver, B.C. V6T 1Z4 Canada
 
 /*
 
-Initialize motor.
+Start motor.
 
 */
-void cm_motor_init(void);
+void motorStart(void);
 
 /*
 
-Enable motor.
+Stop motor.
 
 */
-void cm_motor_enable(void);
-
-/*
-
-Disable motor.
-
-*/
-void cm_motor_disable(void);
+void motorStop(void);
 
 /*
 
 Set motor output.
 
-@param p integer between -2048 and 2048
+@param p integer between -128 and 127
 
 */
-void cm_motor_set(int16_t p);
+void motorSet(int8_t p);
 
 #endif /* _MOTOR_H_ */

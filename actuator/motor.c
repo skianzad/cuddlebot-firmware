@@ -18,12 +18,12 @@ Vancouver, B.C. V6T 1Z4 Canada
 
 #include "motor.h"
 
-#define PWM_PERIOD 2048
+#define PWM_PERIOD 128
 
 // PWM configuration.
 static const PWMConfig pwmcfg = {
-	.frequency = (200000 * PWM_PERIOD),       // 819200 kHz, 200 kHz pulse
-	.period = PWM_PERIOD,                     // 4096 cycles per period
+	.frequency = 208333 * PWM_PERIOD,         // 26.67 MHz
+	.period = PWM_PERIOD,                     // 208.3 KHz
 	.callback = NULL,
 	.channels = {
 		{PWM_OUTPUT_ACTIVE_HIGH, NULL},
@@ -36,66 +36,35 @@ static const PWMConfig pwmcfg = {
 	.dier = 0
 };
 
-/*
-
-Initialize motor.
-
-*/
-void cm_motor_init(void) {
-	// currently no-op
-}
-
-/*
-
-Enable motor.
-
-*/
-void cm_motor_enable(void) {
-	// enable the motor driver chip
-	palSetPad(GPIOB, GPIOB_MOTOR_EN);
+void motorStart(void) {
+	// disable the motor driver
+	palClearPad(GPIOB, GPIOB_MOTOR_EN);
 	// start the pwm peripherable
 	pwmStart(&PWMD1, &pwmcfg);
 }
 
-/*
-
-Disable motor.
-
-*/
-void cm_motor_disable(void) {
+void motorStop(void) {
+	// disable the motor driver
+	palClearPad(GPIOB, GPIOB_MOTOR_EN);
 	// stop the pwm peripherable
 	pwmStop(&PWMD1);
-	// disable the motor driver chip
-	palClearPad(GPIOB, GPIOB_MOTOR_EN);
 }
 
-/*
-
-Set motor output.
-
-@param p integer between -2048 and 2048
-
-*/
-void cm_motor_set(int16_t p) {
+void motorSet(int8_t p) {
 	// previous pwm state
-	static int16_t pwmstate = 0;
+	static int8_t pwmstate = 0;
 
-	// bound input
-	if (p > PWM_PERIOD) {
-		p = PWM_PERIOD;
-	} else if (p < -PWM_PERIOD) {
-		p = -PWM_PERIOD;
-	}
+	// input is restricted to [-128, 127] by data type
 
 	if (pwmstate == p) {
 		// no-op
 	} else if (p == 0) {
 		// disable motors
-		cm_motor_disable();
+		palClearPad(GPIOB, GPIOB_MOTOR_EN);
 	} else {
 		// start motors
 		if (pwmstate == 0) {
-			cm_motor_enable();
+			palSetPad(GPIOB, GPIOB_MOTOR_EN);
 		}
 		// new direction when signs don't match
 		bool newdir = (pwmstate < 0) ^ (p < 0);
