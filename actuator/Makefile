@@ -90,7 +90,7 @@ CSRC = $(PORTSRC) \
        $(PLATFORMSRC) \
        $(BOARDSRC) \
        \
-       address.c \
+       addr.c \
        motor.c \
        rs485.c \
        rs485_lld.c \

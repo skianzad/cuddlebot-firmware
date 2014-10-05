@@ -1,6 +1,6 @@
 /*
 
-Cuddlemaster - Copyright (C) 2014 Michael Phan-Ba
+Cuddlebot actuator firmware - Copyright (C) 2014 Michael Phan-Ba
 
 Property of SPIN Research Group
 ICICS/CS Building X508-2366 Main Mall
@@ -11,9 +11,6 @@ Vancouver, B.C. V6T 1Z4 Canada
 
 #ifndef _ADDRESS_H_
 #define _ADDRESS_H_
-
-#include <stdbool.h>
-#include <stdint.h>
 
 // Board bitset addresses.
 #define ADDRESS_INVALID     0x00
@@ -30,14 +27,14 @@ typedef uint8_t cm_address_t;
 
 Board address.
 
-This value should not change after a call to `cm_address_read()`.
+This value should not change after a call to `addrRead()`.
 
 */
-extern cm_address_t cm_address;
+extern cm_address_t local_addr;
 
 /*
 
-Read the board address and save to `cm_address`.
+Read the board address and save to `local_addr`.
 
 The actuator boards are arranged from rear to head of the CuddleBot
 in the following order:
@@ -55,7 +52,7 @@ This function should be invoked during system initialization and
 before configuring interrupt handlers and higher priority threads.
 
 */
-void cm_address_read(void);
+void addrRead(void);
 
 /*
 
@@ -64,6 +61,6 @@ Check if the input address matches the board address.
 @param addr input address
 
 */
-bool cm_address_is_self(cm_address_t addr);
+bool addrIsSelf(cm_address_t addr);
 
 #endif /* _ADDRESS_H_ */

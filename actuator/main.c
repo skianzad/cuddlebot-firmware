@@ -1,6 +1,6 @@
 /*
 
-Cuddlemaster - Copyright (C) 2014 Michael Phan-Ba
+Cuddlebot actuator firmware - Copyright (C) 2014 Michael Phan-Ba
 
 Property of SPIN Research Group
 ICICS/CS Building X508-2366 Main Mall
@@ -28,7 +28,7 @@ limitations under the License.
 #include <ch.h>
 #include <hal.h>
 
-#include "address.h"
+#include "addr.h"
 #include "motor.h"
 #include "rs485.h"
 
@@ -43,9 +43,9 @@ int main(void) {
 	chSysInit();
 
 	// read board address
-	cm_address_read();
+	addrRead();
 
-	// initialize and start rs-485 serial driver
+	// start rs-485 serial driver
 	rsdStart();
 
 	// initialize motor
@@ -53,7 +53,7 @@ int main(void) {
 
 	for (;;) {
 		// send address
-		switch (cm_address) {
+		switch (local_addr) {
 		case ADDRESS_RIBS:
 			rsdSend(22, (uint8_t *)"I am the ribs motor!\r\n");
 			break;
