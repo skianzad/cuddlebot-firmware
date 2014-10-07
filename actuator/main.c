@@ -49,12 +49,22 @@ int main(void) {
 	rsdStart();
 
 	// start motor
-	motorStart();
-	int v = 100;
+	if (local_addr == ADDRESS_PURR) {
+		motorStart(&PurrDriver);
+	} else {
+		motorStart(&MaxonDriver);
+	}
+
+	int v = 20;
 
 	for (;;) {
-		motorSet(v);
-		v = -v;
+		if (local_addr == ADDRESS_PURR) {
+			motorSet(&PurrDriver, v);
+			// if (++v < 0) v = 0;
+		} else {
+			motorSet(&MaxonDriver, v);
+			v = -v;
+		}
 
 		// send address
 		switch (local_addr) {
@@ -78,8 +88,8 @@ int main(void) {
 		}
 
 		// sleep
-		chThdSleepMilliseconds(500);
+		chThdSleepMilliseconds(1000);
 	}
 
-	return RDY_OK;
+	return 0;
 }
