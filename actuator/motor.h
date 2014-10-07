@@ -30,7 +30,7 @@ void motorStop(void);
 
 Set motor output.
 
-@param p integer between -128 and 127
+@param p integer between -127 and 127
 
 */
 void motorSet(int8_t p);

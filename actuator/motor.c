@@ -55,6 +55,9 @@ void motorSet(int8_t p) {
 	static int8_t pwmstate = 0;
 
 	// input is restricted to [-128, 127] by data type
+	if (p == -128) {
+		p = -127;
+	}
 
 	if (pwmstate == p) {
 		// no-op
