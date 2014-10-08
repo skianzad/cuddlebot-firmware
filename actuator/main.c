@@ -27,10 +27,12 @@ limitations under the License.
 
 #include <ch.h>
 #include <hal.h>
+#include <chprintf.h>
 
 #include "addr.h"
 #include "motor.h"
 #include "rs485.h"
+#include "sensor.h"
 
 // Application entry point.
 int main(void) {
@@ -51,7 +53,7 @@ int main(void) {
 	}
 
 	// start rs-485 serial driver
-	rsdStart();
+	rsdStart(&SD3);
 
 	// start motor
 	if (local_addr == ADDRESS_PURR) {
@@ -60,40 +62,58 @@ int main(void) {
 		motorStart(&MaxonDriver);
 	}
 
-	int v = 20;
+	int i = 0;
+	int v = 0;
+	BaseSequentialStream *bss = (BaseSequentialStream *)&SD3;
 
 	for (;;) {
-		if (local_addr == ADDRESS_PURR) {
-			motorSet(&PurrDriver, v);
-			// if (++v < 0) v = 0;
-		} else {
-			motorSet(&MaxonDriver, v);
-			v = -v;
-		}
 
 		// send address
-		switch (local_addr) {
-		case ADDRESS_RIBS:
-			rsdSend(22, (uint8_t *)"I am the ribs motor!\r\n");
-			break;
-		case ADDRESS_HEAD_PITCH:
-			rsdSend(28, (uint8_t *)"I am the head pitch motor!\r\n");
-			break;
-		case ADDRESS_HEAD_YAW:
-			rsdSend(26, (uint8_t *)"I am the head yaw motor!\r\n");
-			break;
-		case ADDRESS_SPINE:
-			rsdSend(23, (uint8_t *)"I am the spine motor!\r\n");
-			break;
-		case ADDRESS_PURR:
-			rsdSend(22, (uint8_t *)"I am the purr motor!\r\n");
-			break;
-		default:
-			rsdSend(20, (uint8_t *)"I have no address!\r\n");
+		if (i-- <= 0) {
+			i = 10;
+
+			if (local_addr == ADDRESS_PURR) {
+				motorSet(&PurrDriver, v);
+				// if (++v < 0) v = 0;
+			} else {
+				motorSet(&MaxonDriver, v);
+				v = -v;
+			}
+
+			switch (local_addr) {
+			case ADDRESS_RIBS:
+				chprintf(bss, "I am the ribs motor!\r\n");
+				break;
+			case ADDRESS_HEAD_PITCH:
+				chprintf(bss, "I am the head pitch motor!\r\n");
+				break;
+			case ADDRESS_HEAD_YAW:
+				chprintf(bss, "I am the head yaw motor!\r\n");
+				break;
+			case ADDRESS_SPINE:
+				chprintf(bss, "I am the spine motor!\r\n");
+				break;
+			case ADDRESS_PURR:
+				chprintf(bss, "I am the purr motor!\r\n");
+				break;
+			default:
+				chprintf(bss, "I have no address!\r\n");
+			}
 		}
 
+		sensor_vitals_t vitals;
+		sensorReadVitals(&vitals);
+
+		chprintf(bss, "temperature = %d\r\n", vitals.temperature);
+		chprintf(bss, "position = %d\r\n", vitals.position);
+		chprintf(bss, "pcos = %d\r\n", vitals.pcos);
+		chprintf(bss, "psin = %d\r\n", vitals.psin);
+		chprintf(bss, "torque = %d\r\n", vitals.torque);
+		chprintf(bss, "current = %d\r\n", vitals.current);
+		chprintf(bss, "vref = %d\r\n", vitals.vref);
+
 		// sleep
-		chThdSleepMilliseconds(1000);
+		chThdSleepMilliseconds(100);
 	}
 
 	return 0;

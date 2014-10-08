@@ -5,7 +5,7 @@
 
 # Compiler options here.
 ifeq ($(USE_OPT),)
-  USE_OPT = -O2 -ggdb -fomit-frame-pointer -falign-functions=16
+  USE_OPT = -O2 -ggdb -fomit-frame-pointer -falign-functions=16 -lm
 endif
 
 # C specific options here (added to USE_OPT).
@@ -89,11 +89,11 @@ CSRC = $(PORTSRC) \
        $(HALSRC) \
        $(PLATFORMSRC) \
        $(BOARDSRC) \
+       $(CHIBIOS)/os/various/chprintf.c \
        \
        addr.c \
        motor.c \
        rs485.c \
-       rs485_lld.c \
        sensor.c \
        \
        main.c

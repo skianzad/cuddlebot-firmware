@@ -13,40 +13,21 @@ Vancouver, B.C. V6T 1Z4 Canada
 #include <hal.h>
 
 #include "rs485.h"
-#include "rs485_lld.h"
 
-void rsdStart(void) {
+void rsdStart(SerialDriver *sd) {
+	// start serial driver 3
+	sdStart(sd, NULL);
 	// enable RS-485 driver
-	rsd_lld_tx_enable();
-	// start USART driver
-	rsd_lld_start();
+	palSetPad(GPIOB, GPIOB_RS485_TXEN);
 }
 
-void rsdStop(void) {
+void rsdStop(SerialDriver *sd) {
 	// disable RS-485 driver
-	rsd_lld_tx_disable();
+	palClearPad(GPIOB, GPIOB_RS485_TXEN);
 	// stop USART driver
-	rsd_lld_stop();
+	sdStop(sd);
 }
 
-msg_t rsdSend(size_t n, const void *txbuf) {
-	// lock system
-	chSysLock();
-	// send data
-	msg_t err = rsdSendS(n, txbuf);
-	// unlock system
-	chSysUnlock();
-	// return error
-	return err;
-}
-
-msg_t rsdRecv(size_t n, void *rxbuf) {
-	// lock system
-	chSysLock();
-	// receive data
-	msg_t err = rsdRecvS(n, rxbuf);
-	// unlock system
-	chSysUnlock();
-	// return error
-	return err;
+void rsdListen(SerialDriver *sd) {
+	(void)sd;
 }

@@ -1,6 +1,6 @@
 /*
 
-Cuddlemaster - Copyright (C) 2014 Michael Phan-Ba
+Cuddlebot actuator firmware - Copyright (C) 2014 Michael Phan-Ba
 
 Property of SPIN Research Group
 ICICS/CS Building X508-2366 Main Mall
@@ -18,7 +18,7 @@ Vancouver, B.C. V6T 1Z4 Canada
 #include "sensor.h"
 
 // Number of channels to be sampled for ADC1.
-#define ADC_GRP_NUM_CHANNELS 7
+#define ADC_GRP_NUM_CHANNELS 6
 
 /*
 
@@ -30,26 +30,26 @@ Timing:   15 cycles sample time
           15 cycles conversion time
           30 total cycles
 
-					@ 21 Mhz ADC clock
+          @ 21 Mhz ADC clock
 
-					~0.71 µs sample time
-					~0.71 µs conversion time
+          ~0.71 µs sample time
+          ~0.71 µs conversion time
           ~1.42 µs total time
 
 Timing:   480 cycles sample time
           15 cycles conversion time
           495 total cycles
 
-					@ 21 Mhz ADC clock
+          @ 21 Mhz ADC clock
 
-					~22.9 µs sample time
-					~0.71 µs conversion time
+          ~22.9 µs sample time
+          ~0.71 µs conversion time
           ~23.6 µs total time
 
 */
 static const ADCConversionGroup adcgrpcfg = {
 	.circular = FALSE,                        // linear buffer
-	.num_channels = ADC_GRP_NUM_CHANNELS,    // channels 8-13
+	.num_channels = ADC_GRP_NUM_CHANNELS,     // channels 8-13
 	.end_cb = NULL,
 	.error_cb = NULL,
 	// hardware-specific configuration
@@ -59,26 +59,24 @@ static const ADCConversionGroup adcgrpcfg = {
 	  ADC_SMPR1_SMP_SENSOR(ADC_SAMPLE_480) |  // internal temperature, min 10 µs
 	  ADC_SMPR1_SMP_AN13(ADC_SAMPLE_15) |     // motor pos cos
 	  ADC_SMPR1_SMP_AN12(ADC_SAMPLE_15) |     // motor pos sin
-	  ADC_SMPR1_SMP_AN11(ADC_SAMPLE_15) |     // motor pos temperature
 	  ADC_SMPR1_SMP_AN10(ADC_SAMPLE_15)),     // torque
 	.smpr2 = (
 	  ADC_SMPR2_SMP_AN9(ADC_SAMPLE_15) |      // vref 1V65
 	  ADC_SMPR2_SMP_AN8(ADC_SAMPLE_15)),      // current
 	.sqr1 = ADC_SQR1_NUM_CH(ADC_GRP_NUM_CHANNELS),
-	.sqr2 = ADC_SQR2_SQ7_N(ADC_CHANNEL_IN9),  // vref 1V65
+	.sqr2 = 0,
 	.sqr3 = (
-	  ADC_SQR3_SQ6_N(ADC_CHANNEL_IN8) |       // current
-	  ADC_SQR3_SQ5_N(ADC_CHANNEL_IN10) |      // torque
-	  ADC_SQR3_SQ4_N(ADC_CHANNEL_IN12) |      // pos sin
-	  ADC_SQR3_SQ3_N(ADC_CHANNEL_IN13) |      // pos cos
-	  ADC_SQR3_SQ2_N(ADC_CHANNEL_IN11) |      // pos temperature
+	  ADC_SQR3_SQ6_N(ADC_CHANNEL_IN9) |       // vref 1V65
+	  ADC_SQR3_SQ5_N(ADC_CHANNEL_IN8) |       // current
+	  ADC_SQR3_SQ4_N(ADC_CHANNEL_IN10) |      // torque
+	  ADC_SQR3_SQ3_N(ADC_CHANNEL_IN12) |      // pos sin
+	  ADC_SQR3_SQ2_N(ADC_CHANNEL_IN13) |      // pos cos
 	  ADC_SQR3_SQ1_N(ADC_CHANNEL_SENSOR))     // internal temperature
 };
 
 // idiomatic access to sample buffer
 typedef struct {
-	adcsample_t internal_temperature;
-	adcsample_t pos_temperature;
+	adcsample_t temperature;
 	adcsample_t pos_cos;
 	adcsample_t pos_sin;
 	adcsample_t torque;
@@ -86,34 +84,17 @@ typedef struct {
 	adcsample_t vref;
 } sensor_sample_vitals_t;
 
-// vital sampling results
-typedef struct {
-	int16_t internal_temperature;
-	int16_t external_temperature;
-	int16_t position;
-	uint16_t torque;
-	uint16_t current;
-} sensor_vitals_t;
-
-/*
-
-Sample vitals sensors.
-
-Sensors sampled by this function:
-- internal temperature
-- KMZ60 temperature sensor
-- KMZ60 cosine position
-- KMZ60 sine position
-- torque
-- current
-- vref 1V65
-
-*/
-msg_t sensor_sample_vitals(sensor_vitals_t *vitals) {
+msg_t sensorReadVitals(sensor_vitals_t *vitals) {
 	// sample buffer
 	static adcsample_t buf[ADC_GRP_NUM_CHANNELS];
 	// idiomatic access to sample data
 	sensor_sample_vitals_t *samples = (sensor_sample_vitals_t *)buf;
+
+	// enable temperature compensation
+	palSetPad(GPIOB, GPIOB_POS_TCCEN);
+
+	// enable position sensor
+	palClearPad(GPIOB, GPIOB_POS_NEN);
 
 	// enable internal temperature sensor and reference voltage
 	adcSTM32EnableTSVREFE();
@@ -123,6 +104,9 @@ msg_t sensor_sample_vitals(sensor_vitals_t *vitals) {
 	msg_t err = adcConvert(&ADCD1, &adcgrpcfg, (adcsample_t *)&buf, 1);
 	// disable internal temperature sensor and reference voltage
 	adcSTM32DisableTSVREFE();
+
+	// disable position sensor
+	palSetPad(GPIOB, GPIOB_POS_NEN);
 
 	// return on error
 	if (err != RDY_OK) {
@@ -151,11 +135,11 @@ msg_t sensor_sample_vitals(sensor_vitals_t *vitals) {
 
 	*/
 	// calculate voltage based on 12-bit sampling 0V to 3V3 range
-	int32_t temp = (samples->internal_temperature * 33000) / 4096;
+	int32_t temp = (samples->temperature * 33000) / 4096;
 	// apply formula to convert to °C multiplicative factor 10000
 	temp = ((temp - 7600) / 25) + 250000;
 	// scale back to units of °C
-	vitals->internal_temperature = temp / 10000; // ±1°C
+	vitals->temperature = temp / 10000; // ±1°C
 
 	/*
 
@@ -164,12 +148,12 @@ msg_t sensor_sample_vitals(sensor_vitals_t *vitals) {
 	  = -240 + (1090 - 105 * VSENSE) * VSENSE
 
 	*/
-	// calculate voltage based on 12-bit sampling 0V to 3V3 range
-	temp = samples->pos_temperature * 33000 / 4096;
-	// apply quadratic interpolation
-	temp = -240 + (1090 - 105 * temp) * temp;
-	// scale back to units of °C
-	vitals->external_temperature = temp / 10000;
+	// // calculate voltage based on 12-bit sampling 0V to 3V3 range
+	// temp = samples->pos_temperature * 33000 / 4096;
+	// // apply quadratic interpolation
+	// temp = -240 + (1090 - 105 * temp) * temp;
+	// // scale back to units of °C
+	// vitals->external_temperature = temp / 10000;
 
 	/*
 
@@ -180,17 +164,22 @@ msg_t sensor_sample_vitals(sensor_vitals_t *vitals) {
 
 	*/
 	// calculate sine based on 12-bit sampling
-	float psin = (samples->pos_cos - samples->vref) * 0.893f / 4096.0f;
+	float psin = ((float)(samples->pos_sin - samples->vref)) * M_2_PI * 0.893f / 2048.0f;
 	// calculate sine based on 12-bit sampling
-	float pcos = (samples->pos_sin - samples->vref) * 0.893f / 4096.0f;
+	float pcos = ((float)(samples->pos_cos - samples->vref)) * M_2_PI * 0.893f / 2048.0f;
 	// calculate radians
 	float prad = atan2f(psin, pcos);
-	// bound to between -2π and 2π and convert to signed 16-bit value
-	vitals->position = (int16_t)(fmod(prad, M_2_PI) * 32768);
+	// bound to between -π and π and convert to signed 16-bit value
+	vitals->position = (int16_t)(((fmod(prad, M_PI) + M_PI) / M_PI) * 0xffff);
 
 	// torque and current values from -32768 to +32767
 	vitals->torque = samples->torque - samples->vref;
 	vitals->current = samples->current - samples->vref;
+
+	// save raw values
+	vitals->pcos = samples->pos_cos;
+	vitals->psin = samples->pos_sin;
+	vitals->vref = samples->vref;
 
 	return RDY_OK;
 }
