@@ -45,6 +45,11 @@ int main(void) {
 	// read board address
 	addrRead();
 
+	// halt system if address is invalid
+	if (local_addr == ADDRESS_INVALID) {
+		chSysHalt();
+	}
+
 	// start rs-485 serial driver
 	rsdStart();
 
