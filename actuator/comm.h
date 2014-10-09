@@ -9,23 +9,68 @@ Vancouver, B.C. V6T 1Z4 Canada
 
 */
 
-/*
-
-RS-485 driver implementation.
-
-*/
+/* RS-485 driver implementation. */
 
 #ifndef _COMM_H_
 #define _COMM_H_
 
-#define MSGTYPE_NOOP               0
-#define MSGTYPE_PINGREQ            1
-#define MSGTYPE_PINGRESP           2
-#define MSGTYPE_SETPOINTREQ        31
-#define MSGTYPE_SETPOINTRESP       32
-#define MSGTYPE_ERRORRESP          255
+/* Message metadata. */
+typedef struct {
+  uint8_t addr;               // message address
+  uint8_t type;               // message type
+  uint16_t len;               // message data length
+  uint8_t *buf;               // message data buffer
+} CommMeta;
 
-typedef msg_t (*commscb_t)(uint8_t type, void *buf, uint16_t len);
+/*
+
+Message address check callback.
+
+The callback should return false to ignore a message.
+
+@param addr The address to check
+
+*/
+typedef bool (*commacb_t)(uint8_t addr);
+
+/*
+
+Message service callback.
+
+@param type The message type
+@param buf The message data buffer
+@param len The message data length
+
+*/
+typedef msg_t (*commscb_t)(CommMeta *meta);
+
+/*
+
+Comm driver state.
+
+The service callback function `scb` is run in the same thread as the
+serial handler and the metadata structure passed to it is only valid
+until the function exits. The function must not use the metadata
+structure after the function exits.
+
+The driver state contains the data buffer used for receiving messages
+and the driver should be statically allocated to avoid memory
+allocation problems.
+
+*/
+typedef struct {
+  SerialDriver *sd;           // serial driver
+  const commacb_t acb;        // address check callback
+  const commscb_t scb;        // service callback
+  const ioportid_t enport;    // RS-485 enable port
+  const ioportmask_t enpad;   // RS-485 enable pad in port
+  const tprio_t prio;         // service thread priority
+  const systime_t timeout;    // RS-485 comm timeout
+  // internal state
+  uint8_t buf[1024];          // data buffer
+  Thread *tp;                 // handler thread buffer
+  WORKING_AREA(wa, 128);      // handler thread stack memory
+} CommDriver;
 
 /*
 
@@ -34,7 +79,7 @@ Start the RS-485 driver.
 @param sd The serial driver
 
 */
-void commStart(SerialDriver *sd);
+void commStart(CommDriver *comm);
 
 /*
 
@@ -43,21 +88,6 @@ Stop the RS-485 driver.
 @param sd The serial driver
 
 */
-void commStop(SerialDriver *sd);
-
-/*
-
-Listen for master commands.
-
-This function listens for requests from the master and services them
-synchronously. Batched commands sent on the bus are serviced as they
-arrive and responded to in turn. For example, if the master sends a
-request to clients 1, 5, and 4, the clients will listen on the bus and
-wait to respond in the same order.
-
-@param sd The serial driver
-
-*/
-void commListen(SerialDriver *sd, commscb_t scb);
+void commStop(CommDriver *comm);
 
 #endif // _COMM_H_

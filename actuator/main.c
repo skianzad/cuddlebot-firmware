@@ -34,6 +34,17 @@ limitations under the License.
 #include "motor.h"
 #include "sensor.h"
 
+/* Communications driver 1. */
+CommDriver CD1 = {
+	.sd = &SD3,
+	.acb = addrIsSelf,
+	.scb = NULL,
+	.enport = GPIOB,
+	.enpad = GPIOB_RS485_TXEN,
+	.prio = LOWPRIO,
+	.timeout = MS2ST(1)
+};
+
 /* Motor driver configuration. */
 MotorDriver MD1 = {
 	.pwm = &PWMD1,
@@ -94,7 +105,7 @@ int main(void) {
 	}
 
 	// start rs-485 serial driver
-	commStart(&SD3);
+	commStart(&CD1);
 
 	// start motor
 	if (local_addr == ADDRESS_PURR) {
@@ -105,7 +116,7 @@ int main(void) {
 
 	int i = 0;
 	int v = 0;
-	BaseSequentialStream *bss = (BaseSequentialStream *)&SD3;
+	BaseSequentialStream *bss = (BaseSequentialStream *)CD1.sd;
 
 	for (;;) {
 
