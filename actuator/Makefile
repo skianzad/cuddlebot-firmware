@@ -92,8 +92,8 @@ CSRC = $(PORTSRC) \
        $(CHIBIOS)/os/various/chprintf.c \
        \
        addr.c \
+       comm.c \
        motor.c \
-       rs485.c \
        sensor.c \
        \
        main.c

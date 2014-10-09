@@ -30,8 +30,8 @@ limitations under the License.
 #include <chprintf.h>
 
 #include "addr.h"
+#include "comm.h"
 #include "motor.h"
-#include "rs485.h"
 #include "sensor.h"
 
 // Application entry point.
@@ -53,7 +53,7 @@ int main(void) {
 	}
 
 	// start rs-485 serial driver
-	rsdStart(&SD3);
+	commStart(&SD3);
 
 	// start motor
 	if (local_addr == ADDRESS_PURR) {
