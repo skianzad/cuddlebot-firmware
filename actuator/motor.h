@@ -16,13 +16,13 @@ Vancouver, B.C. V6T 1Z4 Canada
 typedef struct MotorDriver MotorDriver;
 
 /* Motor driver instance. */
-extern MotorDriver MD1;
-
-/* PWM configuration for Maxon motors. */
-extern PWMConfig MaxonPWMConfig;
-
-/* PWM configuration for Purr motors. */
-extern PWMConfig PurrPWMConfig;
+struct MotorDriver {
+  PWMDriver *pwm;
+  ioportid_t enport;
+  ioportmask_t enpad;
+  pwmcnt_t offset;
+  int8_t pwmstate;
+};
 
 /* Start motor driver. */
 void motorStart(MotorDriver *md, PWMConfig *pwm);

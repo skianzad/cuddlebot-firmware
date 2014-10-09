@@ -34,6 +34,47 @@ limitations under the License.
 #include "motor.h"
 #include "sensor.h"
 
+/* Motor driver configuration. */
+MotorDriver MD1 = {
+	.pwm = &PWMD1,
+	.enport = GPIOB,
+	.enpad = GPIOB_MOTOR_EN,
+	.offset = 179,
+	.pwmstate = 0
+};
+
+/* PWM configuration for Maxon motors. */
+PWMConfig MaxonPWMConfig = {
+	.frequency = 306 * 137255,                //  42.0 MHz; divider = 2
+	.period = 306,                            // 137.3 KHz
+	.callback = NULL,
+	.channels = {
+		{PWM_OUTPUT_ACTIVE_HIGH, NULL},
+		{PWM_OUTPUT_ACTIVE_HIGH, NULL},
+		{PWM_OUTPUT_DISABLED, NULL},
+		{PWM_OUTPUT_DISABLED, NULL}
+	},
+	// HW dependent part.
+	.cr2 = 0,
+	.dier = 0
+};
+
+/* PWM configuration for Purr motors. */
+PWMConfig PurrPWMConfig = {
+	.frequency = 207 * 202898,                //  42.0 MHz; divider = 2
+	.period = 207,                            // 137.3 KHz
+	.callback = NULL,
+	.channels = {
+		{PWM_OUTPUT_ACTIVE_HIGH, NULL},
+		{PWM_OUTPUT_ACTIVE_HIGH, NULL},
+		{PWM_OUTPUT_DISABLED, NULL},
+		{PWM_OUTPUT_DISABLED, NULL}
+	},
+	// HW dependent part.
+	.cr2 = 0,
+	.dier = 0
+};
+
 // Application entry point.
 int main(void) {
 	// initialize the system

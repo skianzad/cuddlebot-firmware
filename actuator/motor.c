@@ -19,52 +19,6 @@ Vancouver, B.C. V6T 1Z4 Canada
 #include "addr.h"
 #include "motor.h"
 
-struct MotorDriver {
-	PWMDriver *pwm;
-	ioportid_t enport;
-	ioportmask_t enpad;
-	pwmcnt_t offset;
-	int8_t pwmstate;
-};
-
-MotorDriver MD1 = {
-	.pwm = &PWMD1,
-	.enport = GPIOB,
-	.enpad = GPIOB_MOTOR_EN,
-	.offset = 179,
-	.pwmstate = 0
-};
-
-PWMConfig MaxonPWMConfig = {
-	.frequency = 306 * 137255,                //  42.0 MHz; divider = 2
-	.period = 306,                            // 137.3 KHz
-	.callback = NULL,
-	.channels = {
-		{PWM_OUTPUT_ACTIVE_HIGH, NULL},
-		{PWM_OUTPUT_ACTIVE_HIGH, NULL},
-		{PWM_OUTPUT_DISABLED, NULL},
-		{PWM_OUTPUT_DISABLED, NULL}
-	},
-	// HW dependent part.
-	.cr2 = 0,
-	.dier = 0
-};
-
-PWMConfig PurrPWMConfig = {
-	.frequency = 207 * 202898,                //  42.0 MHz; divider = 2
-	.period = 207,                            // 137.3 KHz
-	.callback = NULL,
-	.channels = {
-		{PWM_OUTPUT_ACTIVE_HIGH, NULL},
-		{PWM_OUTPUT_ACTIVE_HIGH, NULL},
-		{PWM_OUTPUT_DISABLED, NULL},
-		{PWM_OUTPUT_DISABLED, NULL}
-	},
-	// HW dependent part.
-	.cr2 = 0,
-	.dier = 0
-};
-
 void motorStart(MotorDriver *md, PWMConfig *pwmcfg) {
 	// reset state
 	md->offset = pwmcfg->period - 127;
