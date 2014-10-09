@@ -57,9 +57,9 @@ int main(void) {
 
 	// start motor
 	if (local_addr == ADDRESS_PURR) {
-		motorStart(&PurrDriver);
+		motorStart(&MD1, &MaxonPWMConfig);
 	} else {
-		motorStart(&MaxonDriver);
+		motorStart(&MD1, &PurrPWMConfig);
 	}
 
 	int i = 0;
@@ -73,10 +73,10 @@ int main(void) {
 			i = 10;
 
 			if (local_addr == ADDRESS_PURR) {
-				motorSet(&PurrDriver, v);
+				motorSet(&MD1, v);
 				// if (++v < 0) v = 0;
 			} else {
-				motorSet(&MaxonDriver, v);
+				motorSet(&MD1, v);
 				v = -v;
 			}
 

@@ -20,63 +20,66 @@ Vancouver, B.C. V6T 1Z4 Canada
 #include "motor.h"
 
 struct MotorDriver {
-	PWMConfig config;
+	PWMDriver *pwm;
+	ioportid_t enport;
+	ioportmask_t enpad;
 	pwmcnt_t offset;
 	int8_t pwmstate;
 };
 
-MotorDriver MaxonDriver = {
-	.config = {
-		.frequency = 306 * 137255,                //  42.0 MHz; divider = 2
-		.period = 306,                            // 137.3 KHz
-		.callback = NULL,
-		.channels = {
-			{PWM_OUTPUT_ACTIVE_HIGH, NULL},
-			{PWM_OUTPUT_ACTIVE_HIGH, NULL},
-			{PWM_OUTPUT_DISABLED, NULL},
-			{PWM_OUTPUT_DISABLED, NULL}
-		},
-		// HW dependent part.
-		.cr2 = 0,
-		.dier = 0
-	},
+MotorDriver MD1 = {
+	.pwm = &PWMD1,
+	.enport = GPIOB,
+	.enpad = GPIOB_MOTOR_EN,
 	.offset = 179,
 	.pwmstate = 0
 };
 
-MotorDriver PurrDriver = {
-	.config = {
-		.frequency = 207 * 202898,                //  42.0 MHz; divider = 2
-		.period = 207,                            // 137.3 KHz
-		.callback = NULL,
-		.channels = {
-			{PWM_OUTPUT_ACTIVE_HIGH, NULL},
-			{PWM_OUTPUT_ACTIVE_HIGH, NULL},
-			{PWM_OUTPUT_DISABLED, NULL},
-			{PWM_OUTPUT_DISABLED, NULL}
-		},
-		// HW dependent part.
-		.cr2 = 0,
-		.dier = 0
+PWMConfig MaxonPWMConfig = {
+	.frequency = 306 * 137255,                //  42.0 MHz; divider = 2
+	.period = 306,                            // 137.3 KHz
+	.callback = NULL,
+	.channels = {
+		{PWM_OUTPUT_ACTIVE_HIGH, NULL},
+		{PWM_OUTPUT_ACTIVE_HIGH, NULL},
+		{PWM_OUTPUT_DISABLED, NULL},
+		{PWM_OUTPUT_DISABLED, NULL}
 	},
-	.offset = 80,
-	.pwmstate = 0
+	// HW dependent part.
+	.cr2 = 0,
+	.dier = 0
 };
 
-void motorStart(MotorDriver *md) {
+PWMConfig PurrPWMConfig = {
+	.frequency = 207 * 202898,                //  42.0 MHz; divider = 2
+	.period = 207,                            // 137.3 KHz
+	.callback = NULL,
+	.channels = {
+		{PWM_OUTPUT_ACTIVE_HIGH, NULL},
+		{PWM_OUTPUT_ACTIVE_HIGH, NULL},
+		{PWM_OUTPUT_DISABLED, NULL},
+		{PWM_OUTPUT_DISABLED, NULL}
+	},
+	// HW dependent part.
+	.cr2 = 0,
+	.dier = 0
+};
+
+void motorStart(MotorDriver *md, PWMConfig *pwmcfg) {
+	// reset state
+	md->offset = pwmcfg->period - 127;
+	md->pwmstate = 0;
 	// disable the motor driver
-	palClearPad(GPIOB, GPIOB_MOTOR_EN);
+	palClearPad(md->enport, md->enpad);
 	// start the pwm peripherable
-	pwmStart(&PWMD1, &md->config);
+	pwmStart(md->pwm, pwmcfg);
 }
 
 void motorStop(MotorDriver *md) {
-	(void)md;
-
 	// disable the motor driver
-	palClearPad(GPIOB, GPIOB_MOTOR_EN);
+	palClearPad(md->enport, md->enpad);
 	// stop the pwm peripherable
-	pwmStop(&PWMD1);
+	pwmStop(md->pwm);
 }
 
 void motorSet(MotorDriver *md, int8_t p) {
@@ -92,12 +95,12 @@ void motorSet(MotorDriver *md, int8_t p) {
 	} else if (p == 0) {
 
 		// disable motors
-		palClearPad(GPIOB, GPIOB_MOTOR_EN);
+		palClearPad(md->enport, md->enpad);
 
 	} else {
 		// start motors
 		if (md->pwmstate == 0) {
-			palSetPad(GPIOB, GPIOB_MOTOR_EN);
+			palSetPad(md->enport, md->enpad);
 		}
 
 		// new direction when signs don't match
@@ -105,15 +108,15 @@ void motorSet(MotorDriver *md, int8_t p) {
 
 		// update forces
 		if (p > 0) {
-			pwmEnableChannel(&PWMD1, 0, md->offset + p);
+			pwmEnableChannel(md->pwm, 0, md->offset + p);
 			if (newdir) {
-				pwmDisableChannel(&PWMD1, 1);
+				pwmDisableChannel(md->pwm, 1);
 			}
 		} else {
 			if (newdir) {
-				pwmDisableChannel(&PWMD1, 0);
+				pwmDisableChannel(md->pwm, 0);
 			}
-			pwmEnableChannel(&PWMD1, 1, md->offset - p);
+			pwmEnableChannel(md->pwm, 1, md->offset - p);
 		}
 	}
 
