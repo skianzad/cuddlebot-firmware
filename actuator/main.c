@@ -57,9 +57,9 @@ int main(void) {
 
 	// start motor
 	if (local_addr == ADDRESS_PURR) {
-		motorStart(&MD1, &MaxonPWMConfig);
-	} else {
 		motorStart(&MD1, &PurrPWMConfig);
+	} else {
+		motorStart(&MD1, &MaxonPWMConfig);
 	}
 
 	int i = 0;
