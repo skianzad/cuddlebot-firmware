@@ -9,17 +9,35 @@ Vancouver, B.C. V6T 1Z4 Canada
 
 */
 
-#include <stdbool.h>
-#include <stdint.h>
 #include <math.h>
 
 #include <ch.h>
 #include <hal.h>
 
+#include "addr.h"
 #include "motor.h"
 
 // Number of channels to be sampled for ADC1.
 #define ADC_GRP_NUM_CHANNELS 3
+
+static pwmcnt_t pwmoffset;
+static int8_t pwmstate;
+
+/* PWM configuration for Maxon motors. */
+static PWMConfig pwmcfg = {
+	.frequency = 306 * 137254,                //  42.0 MHz; divider = 2
+	.period = 306,                            // 137.3 KHz
+	.callback = NULL,
+	.channels = {
+		{PWM_OUTPUT_ACTIVE_HIGH, NULL},
+		{PWM_OUTPUT_ACTIVE_HIGH, NULL},
+		{PWM_OUTPUT_DISABLED, NULL},
+		{PWM_OUTPUT_DISABLED, NULL}
+	},
+	// HW dependent part.
+	.cr2 = 0,
+	.dier = 0
+};
 
 /*
 
@@ -59,68 +77,71 @@ static const ADCConversionGroup adcgrpcfg = {
 	  ADC_SQR3_SQ1_N(ADC_CHANNEL_IN13))       // pos cos
 };
 
-void motorStart(MotorDriver *md, PWMConfig *pwmcfg) {
+void motorStart(void) {
+	// adjust PWM config for purr motor
+	if (addrGet() == ADDR_PURR) {
+		pwmcfg.frequency = 207 * 202898;    //  42.0 MHz; divider = 2
+		pwmcfg.period = 207;                // 137.3 KHz
+	}
 	// reset state
-	md->pwmoffset = pwmcfg->period - 127;
-	md->pwmstate = 0;
+	pwmoffset = pwmcfg.period - 127;
+	pwmstate = 0;
 	// disable the motor driver
-	palClearPad(md->enport, md->enpad);
+	palClearPad(GPIOB, GPIOB_MOTOR_EN);
 	// start the pwm peripherable
-	pwmStart(md->pwm, pwmcfg);
+	pwmStart(&PWMD1, &pwmcfg);
 }
 
-void motorStop(MotorDriver *md) {
+void motorStop(void) {
 	// disable the motor driver
-	palClearPad(md->enport, md->enpad);
+	palClearPad(GPIOB, GPIOB_MOTOR_EN);
 	// stop the pwm peripherable
-	pwmStop(md->pwm);
+	pwmStop(&PWMD1);
 }
 
-void motorSet(MotorDriver *md, int8_t p) {
+void motorSet(int8_t p) {
 	// input is restricted to [-128, 127] by data type
 	if (p == -128) {
 		p = -127;
 	}
 
-	if (md->pwmstate == p) {
+	if (pwmstate == p) {
 
 		// no-op
 
 	} else if (p == 0) {
 
 		// disable motors
-		palClearPad(md->enport, md->enpad);
+		palClearPad(GPIOB, GPIOB_MOTOR_EN);
 
 	} else {
 		// start motors
-		if (md->pwmstate == 0) {
-			palSetPad(md->enport, md->enpad);
+		if (pwmstate == 0) {
+			palSetPad(GPIOB, GPIOB_MOTOR_EN);
 		}
 
 		// new direction when signs don't match
-		bool newdir = (md->pwmstate == 0) || ((md->pwmstate < 0) ^ (p < 0));
+		bool newdir = (pwmstate == 0) || ((pwmstate < 0) ^ (p < 0));
 
 		// update forces
 		if (p > 0) {
-			pwmEnableChannel(md->pwm, 0, md->pwmoffset + p);
+			pwmEnableChannel(&PWMD1, 0, pwmoffset + p);
 			if (newdir) {
-				pwmDisableChannel(md->pwm, 1);
+				pwmDisableChannel(&PWMD1, 1);
 			}
 		} else {
 			if (newdir) {
-				pwmDisableChannel(md->pwm, 0);
+				pwmDisableChannel(&PWMD1, 0);
 			}
-			pwmEnableChannel(md->pwm, 1, md->pwmoffset - p);
+			pwmEnableChannel(&PWMD1, 1, pwmoffset - p);
 		}
 	}
 
 	// update state
-	md->pwmstate = p;
+	pwmstate = p;
 }
 
-msg_t motorPosition(MotorDriver *md, uint16_t *p) {
-	(void)md;
-
+msg_t motorPosition(uint16_t *p) {
 	// sample buffer
 	static adcsample_t buf[ADC_GRP_NUM_CHANNELS];
 

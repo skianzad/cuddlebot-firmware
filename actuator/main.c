@@ -33,56 +33,6 @@ limitations under the License.
 #include "comm.h"
 #include "motor.h"
 
-/* Communications driver. */
-CommDriver CD1 = {
-	.sd = &SD3,
-	.acb = addrIsSelf,
-	.scb = NULL,
-	.txenport = GPIOB,
-	.txenpad = GPIOB_RS485_TXEN,
-	.prio = LOWPRIO,
-	.timeout = MS2ST(1)
-};
-
-/* Motor driver configuration. */
-MotorDriver MD1 = {
-	.pwm = &PWMD1,
-	.enport = GPIOB,
-	.enpad = GPIOB_MOTOR_EN
-};
-
-/* PWM configuration for Maxon motors. */
-PWMConfig MaxonPWMConfig = {
-	.frequency = 306 * 137254,                //  42.0 MHz; divider = 2
-	.period = 306,                            // 137.3 KHz
-	.callback = NULL,
-	.channels = {
-		{PWM_OUTPUT_ACTIVE_HIGH, NULL},
-		{PWM_OUTPUT_ACTIVE_HIGH, NULL},
-		{PWM_OUTPUT_DISABLED, NULL},
-		{PWM_OUTPUT_DISABLED, NULL}
-	},
-	// HW dependent part.
-	.cr2 = 0,
-	.dier = 0
-};
-
-/* PWM configuration for Purr motors. */
-PWMConfig PurrPWMConfig = {
-	.frequency = 207 * 202898,                //  42.0 MHz; divider = 2
-	.period = 207,                            // 137.3 KHz
-	.callback = NULL,
-	.channels = {
-		{PWM_OUTPUT_ACTIVE_HIGH, NULL},
-		{PWM_OUTPUT_ACTIVE_HIGH, NULL},
-		{PWM_OUTPUT_DISABLED, NULL},
-		{PWM_OUTPUT_DISABLED, NULL}
-	},
-	// HW dependent part.
-	.cr2 = 0,
-	.dier = 0
-};
-
 // Application entry point.
 int main(void) {
 	// initialize the system
@@ -101,56 +51,13 @@ int main(void) {
 		chSysHalt();
 	}
 
-	// start serial driver
-	commStart(&CD1);
-
 	// start motor
-	if (addrGet() == ADDR_PURR) {
-		motorStart(&MD1, &PurrPWMConfig);
-	} else {
-		motorStart(&MD1, &MaxonPWMConfig);
-	}
+	motorStart();
 
-	int i = 0;
-	int v = 0;
-	BaseSequentialStream *bss = (BaseSequentialStream *)CD1.sd;
+	// start serial driver
+	// commStart(NULL);
 
 	for (;;) {
-
-		// send address
-		if (i-- <= 0) {
-			i = 10;
-
-			if (addrGet() == ADDR_PURR) {
-				motorSet(&MD1, v);
-				// if (++v < 0) v = 0;
-			} else {
-				motorSet(&MD1, v);
-				v = -v;
-			}
-
-			switch (addrGet()) {
-			case ADDR_RIBS:
-				chprintf(bss, "I am the ribs motor!\r\n");
-				break;
-			case ADDR_HEAD_PITCH:
-				chprintf(bss, "I am the head pitch motor!\r\n");
-				break;
-			case ADDR_HEAD_YAW:
-				chprintf(bss, "I am the head yaw motor!\r\n");
-				break;
-			case ADDR_SPINE:
-				chprintf(bss, "I am the spine motor!\r\n");
-				break;
-			case ADDR_PURR:
-				chprintf(bss, "I am the purr motor!\r\n");
-				break;
-			default:
-				chprintf(bss, "I have no address!\r\n");
-			}
-		}
-
-		// sleep
 		chThdSleepMilliseconds(100);
 	}
 

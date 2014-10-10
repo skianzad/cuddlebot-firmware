@@ -15,7 +15,7 @@ Vancouver, B.C. V6T 1Z4 Canada
 #include "addr.h"
 #include "pid.h"
 
-msg_t pidCalibrate(PIDDriver *pid) {
+msg_t pidStart(PIDDriver *pid) {
 	msg_t ret;
 	uint16_t pos;
 
@@ -33,11 +33,11 @@ msg_t pidCalibrate(PIDDriver *pid) {
 	}
 
 	// send motor to starting position
-	motorSet(pid->md, 75 * pid->dir);
+	motorSet(75 * pid->dir);
 	chThdSleepSeconds(1);
 
 	// sample position sensor
-	ret = motorPosition(pid->md, &pos);
+	ret = motorPosition(&pos);
 	if (ret != RDY_OK) {
 		return ret;
 	}
@@ -46,11 +46,11 @@ msg_t pidCalibrate(PIDDriver *pid) {
 	pid->offset = pos;
 
 	// send motor the other way
-	motorSet(pid->md, -75 * pid->dir);
+	motorSet(-75 * pid->dir);
 	chThdSleepSeconds(1);
 
 	// sample position sensor
-	ret = motorPosition(pid->md, &pos);
+	ret = motorPosition(&pos);
 	if (ret != RDY_OK) {
 		return ret;
 	}
@@ -59,9 +59,8 @@ msg_t pidCalibrate(PIDDriver *pid) {
 	pid->limit = pos;
 
 	// disable motor
-	motorSet(pid->md, 0);
+	motorSet(0);
 
-	// return ok
 	return RDY_OK;
 }
 

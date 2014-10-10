@@ -21,4 +21,20 @@ Vancouver, B.C. V6T 1Z4 Canada
 #define MSGTYPE_SETPOINTRESP       32
 #define MSGTYPE_ERRORRESP          255
 
+typedef struct {} msgtype_noop_t;
+typedef msgtype_noop_t msgtype_pingreq_t;
+typedef msgtype_noop_t msgtype_pingresp_t;
+
+typedef struct {
+	uint16_t duration;
+	uint16_t setpoint;
+} msgtype_setpoint_t;
+
+typedef struct {
+	uint8_t loop;
+	msgtype_setpoint_t points[1];
+} msgtype_setpointreq_t;
+
+typedef msgtype_noop_t msgtype_setpointresp_t;
+
 #endif // _MSGTYPE_H_

@@ -18,29 +18,28 @@ Vancouver, B.C. V6T 1Z4 Canada
 #include "motor.h"
 
 typedef struct {
-	MotorDriver *md;
 	// coefficients
 	uint16_t setpoint;
 	uint16_t kp;
 	uint16_t ki;
 	uint16_t kd;
-	// calibration
+	// private: calibration
 	uint16_t offset;
 	uint16_t limit;
 	int8_t dir;
-	// internal state
+	// private: internal state
 	int32_t lasterr;
 	int32_t integrator;
 } PIDDriver;
 
 /*
 
-Calibrate PID driver.
+Start and calibrate PID driver.
 
 @param pid The PID driver
 
 */
-msg_t pidCalibrate(PIDDriver *pid);
+msg_t pidStart(PIDDriver *pid);
 
 /*
 

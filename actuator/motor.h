@@ -15,19 +15,6 @@ Vancouver, B.C. V6T 1Z4 Canada
 #include <ch.h>
 #include <hal.h>
 
-/* Motor driver state. */
-typedef struct MotorDriver MotorDriver;
-
-/* Motor driver instance. */
-struct MotorDriver {
-	PWMDriver *pwm;
-	ioportid_t enport;
-	ioportmask_t enpad;
-	// private configuration
-	pwmcnt_t pwmoffset;
-	int8_t pwmstate;
-};
-
 /*
 
 Start motor driver.
@@ -36,36 +23,28 @@ Start motor driver.
 @param pwm The PWM driver configuration
 
 */
-void motorStart(MotorDriver *md, PWMConfig *pwm);
+void motorStart(void);
 
-/*
-
-Stop motor driver.
-
-@param md The motor driver
-
-*/
-void motorStop(MotorDriver *md);
+/* Stop motor driver. */
+void motorStop(void);
 
 /*
 
 Set motor output.
 
-@param md The motor driver
 @param p integer between -127 and 127
 
 */
-void motorSet(MotorDriver *md, int8_t p);
+void motorSet(int8_t p);
 
 /*
 
 Get motor mosition.
 
-@param md The motor driver
 @param p The address to store the rotary position of the motor between
           0 and 65535
 
 */
-msg_t motorPosition(MotorDriver *md, uint16_t *p);
+msg_t motorPosition(uint16_t *p);
 
 #endif /* _MOTOR_H_ */

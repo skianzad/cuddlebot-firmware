@@ -12,8 +12,26 @@ Vancouver, B.C. V6T 1Z4 Canada
 #include <ch.h>
 #include <hal.h>
 
+#include "addr.h"
 #include "comm.h"
 #include "msgtype.h"
+
+/* Message metadata. */
+typedef struct {
+	uint8_t addr;               // message address
+	uint8_t type;               // message type
+	uint16_t len;               // message data length
+	uint8_t *buf;               // message data buffer
+} comm_lld_meta;
+
+/* Message data buffer */
+static uint8_t comm_buf[1024];
+
+/* Comm handler memory stack. */
+static WORKING_AREA(comm_wa, 128);
+
+/* Comm handler thread handle */
+static Thread *comm_tp;
 
 /*
 
@@ -42,26 +60,25 @@ uint32_t comm_lld_crc32(const uint8_t *buf, const size_t len) {
 
 Fill buffer to length.
 
-@param comm The serial driver
 @param meta The message metadata
 
 */
-msg_t comm_lld_fillbuff(CommDriver *comm, CommMeta *meta) {
+msg_t comm_lld_fillbuff(comm_lld_meta *meta) {
 	msg_t ret;
 
 	// ignore messages not addressed to self
 	// ignore message data larger than the size of the buffer
-	if (!comm->acb(meta->addr) || meta->len > sizeof(comm->buf)) {
+	if (!addrIsSelf(meta->addr) || meta->len > sizeof(comm_buf)) {
 		// ignore data and checksum
 		uint16_t i;
 		for (i = 0; i < meta->len + 2; i++) {
-			ret = sdGetTimeout(comm->sd, comm->timeout);
+			ret = sdGetTimeout(&SD3, MS2ST(1));
 			if (ret < RDY_OK) {
 				return ret;
 			}
 		}
 		// return
-		if (meta->len > sizeof(comm->buf)) {
+		if (meta->len > sizeof(comm_buf)) {
 			return RDY_RESET;
 		} else {
 			return RDY_OK;
@@ -69,14 +86,14 @@ msg_t comm_lld_fillbuff(CommDriver *comm, CommMeta *meta) {
 	}
 
 	// read data
-	ret = sdReadTimeout(comm->sd, comm->buf, meta->len, comm->timeout);
+	ret = sdReadTimeout(&SD3, comm_buf, meta->len, MS2ST(1));
 	if (ret < 0) {
 		return ret;
 	}
 
 	// read checksum
 	uint16_t crcexpect;
-	ret = sdReadTimeout(comm->sd, (uint8_t *)&crcexpect, 2, comm->timeout);
+	ret = sdReadTimeout(&SD3, (uint8_t *)&crcexpect, 2, MS2ST(1));
 	if (ret < 0) {
 		return ret;
 	}
@@ -90,7 +107,7 @@ msg_t comm_lld_fillbuff(CommDriver *comm, CommMeta *meta) {
 	}
 
 	// assign buf
-	meta->buf = comm->buf;
+	meta->buf = comm_buf;
 
 	// return ok
 	return RDY_OK;
@@ -100,15 +117,14 @@ msg_t comm_lld_fillbuff(CommDriver *comm, CommMeta *meta) {
 
 Receive request-response, ignoring invalid messages.
 
-@param comm The serial driver
 @param meta Struct with which to read/write message metadata
 
 */
-msg_t comm_lld_receive(CommDriver *comm, CommMeta *meta) {
+msg_t comm_lld_receive(comm_lld_meta *meta) {
 	msg_t ret;
 
 	// read address, message type, and data length
-	ret = sdReadTimeout(comm->sd, &meta->addr, 4, comm->timeout);
+	ret = sdReadTimeout(&SD3, &meta->addr, 4, MS2ST(1));
 	if (ret < 0) {
 		return ret;
 	}
@@ -117,7 +133,7 @@ msg_t comm_lld_receive(CommDriver *comm, CommMeta *meta) {
 	if (meta->len) {
 
 		// fill buffer
-		ret = comm_lld_fillbuff(comm, meta);
+		ret = comm_lld_fillbuff(meta);
 		if (ret < RDY_OK) {
 			return ret;
 		}
@@ -141,7 +157,7 @@ Transmit a response.
 @param meta The message metadata
 
 */
-msg_t comm_lld_transmit(CommDriver *comm, CommMeta *meta) {
+msg_t comm_lld_transmit(comm_lld_meta *meta) {
 	msg_t ret;
 
 	// calculate checksum
@@ -151,21 +167,21 @@ msg_t comm_lld_transmit(CommDriver *comm, CommMeta *meta) {
 	}
 
 	// send header
-	ret = sdWriteTimeout(comm->sd, &meta->addr, 4, comm->timeout);
+	ret = sdWriteTimeout(&SD3, &meta->addr, 4, MS2ST(1));
 	if (ret < RDY_OK) {
 		return ret;
 	}
 
 	// send data
 	if (meta->len) {
-		ret = sdWriteTimeout(comm->sd, meta->buf, meta->len, comm->timeout);
+		ret = sdWriteTimeout(&SD3, meta->buf, meta->len, MS2ST(1));
 		if (ret < RDY_OK) {
 			return ret;
 		}
 	}
 
 	// send checksum
-	ret = sdWriteTimeout(comm->sd, (uint8_t *)&crc, 2, comm->timeout);
+	ret = sdWriteTimeout(&SD3, (uint8_t *)&crc, 2, MS2ST(1));
 	if (ret < RDY_OK) {
 		return ret;
 	}
@@ -184,31 +200,31 @@ arrive and responded to in turn. For example, if the master sends a
 request to clients 1, 5, and 4, the clients will listen on the bus and
 wait to respond in the same order.
 
-@param arg The serial driver
+@param arg The service callback
 
 */
 msg_t comm_lld_thread(void *arg) {
-	CommDriver *comm = (CommDriver *)arg;
-	CommMeta meta;
+	commscb_t scb = (commscb_t)arg;
+	comm_lld_meta meta;
 
 	// terminate the thread if no callback given
-	if (comm->scb == NULL) {
+	if (scb == NULL) {
 		chThdExit(RDY_RESET);
 	}
 
 	while (!chThdShouldTerminate()) {
 
 		// receive master requests
-		if (comm_lld_receive(comm, &meta) < RDY_OK) {
+		if (comm_lld_receive(&meta) < RDY_OK) {
 			// restart serial driver to clear buffers
-			sdStop(comm->sd);
-			sdStart(comm->sd, NULL);
+			sdStop(&SD3);
+			sdStart(&SD3, NULL);
 			// continue receiving
 			continue;
 		}
 
 		// service requests
-		msg_t ret = comm->scb(&meta);
+		msg_t ret = scb(meta.type, meta.buf, meta.len);
 		if (ret < RDY_OK) {
 			int16_t err = ret;
 			// transmit error
@@ -218,31 +234,31 @@ msg_t comm_lld_thread(void *arg) {
 		}
 
 		// transmit response
-		comm_lld_transmit(comm, &meta);
+		comm_lld_transmit(&meta);
 	}
 
 	return RDY_OK;
 }
 
-void commStart(CommDriver *comm) {
+void commStart(commscb_t scb) {
 	// enable RS-485 driver
-	palSetPad(comm->txenport, comm->txenpad);
+	palSetPad(GPIOB, GPIOB_RS485_TXEN);
 	// start serial driver
-	sdStart(comm->sd, NULL);
+	sdStart(&SD3, NULL);
 	// start listening thread
-	comm->tp = chThdCreateStatic(comm->wa, sizeof(comm->wa),
-	                             comm->prio, comm_lld_thread, comm);
+	comm_tp = chThdCreateStatic(comm_wa, sizeof(comm_wa),
+	                            LOWPRIO, comm_lld_thread, scb);
 }
 
-void commStop(CommDriver *comm) {
+void commStop(void) {
 	// terminate sampling thread
-	if (comm->tp) {
-		chThdTerminate(comm->tp);
-		chThdWait(comm->tp);
-		comm->tp = NULL;
+	if (comm_tp) {
+		chThdTerminate(comm_tp);
+		chThdWait(comm_tp);
+		comm_tp = NULL;
 	}
 	// stop serial driver
-	sdStop(comm->sd);
+	sdStop(&SD3);
 	// disable RS-485 driver
-	palClearPad(comm->txenport, comm->txenpad);
+	palClearPad(GPIOB, GPIOB_RS485_TXEN);
 }
