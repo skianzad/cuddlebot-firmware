@@ -50,13 +50,13 @@ MotorDriver MD1 = {
 	.pwm = &PWMD1,
 	.enport = GPIOB,
 	.enpad = GPIOB_MOTOR_EN,
-	.offset = 179,
+	.offset = 0,
 	.pwmstate = 0
 };
 
 /* PWM configuration for Maxon motors. */
 PWMConfig MaxonPWMConfig = {
-	.frequency = 306 * 137255,                //  42.0 MHz; divider = 2
+	.frequency = 306 * 137254,                //  42.0 MHz; divider = 2
 	.period = 306,                            // 137.3 KHz
 	.callback = NULL,
 	.channels = {
