@@ -17,11 +17,11 @@ typedef struct MotorDriver MotorDriver;
 
 /* Motor driver instance. */
 struct MotorDriver {
-  PWMDriver *pwm;
-  ioportid_t enport;
-  ioportmask_t enpad;
-  pwmcnt_t offset;
-  int8_t pwmstate;
+	PWMDriver *pwm;
+	ioportid_t enport;
+	ioportmask_t enpad;
+	pwmcnt_t offset;
+	int8_t pwmstate;
 };
 
 /* Start motor driver. */
@@ -31,9 +31,9 @@ void motorStart(MotorDriver *md, PWMConfig *pwm);
 void motorStop(MotorDriver *md);
 
 /*
-  Set motor output.
+	Set motor output.
 
-  @param p integer between -127 and 127
+	@param p integer between -127 and 127
 */
 void motorSet(MotorDriver *md, int8_t p);
 

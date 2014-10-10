@@ -16,10 +16,10 @@ Vancouver, B.C. V6T 1Z4 Canada
 
 /* Message metadata. */
 typedef struct {
-  uint8_t addr;               // message address
-  uint8_t type;               // message type
-  uint16_t len;               // message data length
-  uint8_t *buf;               // message data buffer
+	uint8_t addr;               // message address
+	uint8_t type;               // message type
+	uint16_t len;               // message data length
+	uint8_t *buf;               // message data buffer
 } CommMeta;
 
 /*
@@ -59,17 +59,17 @@ allocation problems.
 
 */
 typedef struct {
-  SerialDriver *sd;           // serial driver
-  const commacb_t acb;        // address check callback
-  const commscb_t scb;        // service callback
-  const ioportid_t txenport;    // RS-485 enable port
-  const ioportmask_t txenpad;   // RS-485 enable pad in port
-  const tprio_t prio;         // service thread priority
-  const systime_t timeout;    // RS-485 comm timeout
-  // internal state
-  uint8_t buf[1024];          // data buffer
-  Thread *tp;                 // handler thread buffer
-  WORKING_AREA(wa, 128);      // handler thread stack memory
+	SerialDriver *sd;           // serial driver
+	const commacb_t acb;        // address check callback
+	const commscb_t scb;        // service callback
+	const ioportid_t txenport;    // RS-485 enable port
+	const ioportmask_t txenpad;   // RS-485 enable pad in port
+	const tprio_t prio;         // service thread priority
+	const systime_t timeout;    // RS-485 comm timeout
+	// internal state
+	uint8_t buf[1024];          // data buffer
+	Thread *tp;                 // handler thread buffer
+	WORKING_AREA(wa, 128);      // handler thread stack memory
 } CommDriver;
 
 /*
