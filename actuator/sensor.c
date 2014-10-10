@@ -70,8 +70,8 @@ static const ADCConversionGroup adcgrpcfg = {
 	  ADC_SQR3_SQ5_N(ADC_CHANNEL_IN9) |       // vref 1V65
 	  ADC_SQR3_SQ4_N(ADC_CHANNEL_IN8) |       // current
 	  ADC_SQR3_SQ3_N(ADC_CHANNEL_IN10) |      // torque
-	  ADC_SQR3_SQ2_N(ADC_CHANNEL_IN12) |      // pos sin
-	  ADC_SQR3_SQ1_N(ADC_CHANNEL_IN13))       // pos cos
+	  ADC_SQR3_SQ2_N(ADC_CHANNEL_IN13) |      // pos sin
+	  ADC_SQR3_SQ1_N(ADC_CHANNEL_IN12))       // pos cos
 };
 
 // idiomatic access to sample buffer
@@ -83,7 +83,7 @@ typedef struct {
 	adcsample_t vref;
 } sensor_sample_vitals_t;
 
-msg_t sensorReadVitals(sensor_vitals_t *vitals) {
+msg_t sensorConvert(sensor_vitals_t *vitals) {
 	// sample buffer
 	static adcsample_t buf[ADC_GRP_NUM_CHANNELS];
 	// idiomatic access to sample data

@@ -12,6 +12,9 @@ Vancouver, B.C. V6T 1Z4 Canada
 #ifndef _MOTOR_H_
 #define _MOTOR_H_
 
+#include <ch.h>
+#include <hal.h>
+
 /* Motor driver state. */
 typedef struct MotorDriver MotorDriver;
 
@@ -20,20 +23,37 @@ struct MotorDriver {
 	PWMDriver *pwm;
 	ioportid_t enport;
 	ioportmask_t enpad;
-	pwmcnt_t offset;
+	// private configuration
+	pwmcnt_t pwmoffset;
 	int8_t pwmstate;
 };
 
-/* Start motor driver. */
+/*
+
+Start motor driver.
+
+@param md The motor driver
+@param pwm The PWM driver configuration
+
+*/
 void motorStart(MotorDriver *md, PWMConfig *pwm);
 
-/* Stop motor driver. */
+/*
+
+Stop motor driver.
+
+@param md The motor driver
+
+*/
 void motorStop(MotorDriver *md);
 
 /*
-	Set motor output.
 
-	@param p integer between -127 and 127
+Set motor output.
+
+@param md The motor driver
+@param p integer between -127 and 127
+
 */
 void motorSet(MotorDriver *md, int8_t p);
 

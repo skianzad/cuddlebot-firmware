@@ -20,7 +20,7 @@ Vancouver, B.C. V6T 1Z4 Canada
 
 void motorStart(MotorDriver *md, PWMConfig *pwmcfg) {
 	// reset state
-	md->offset = pwmcfg->period - 127;
+	md->pwmoffset = pwmcfg->period - 127;
 	md->pwmstate = 0;
 	// disable the motor driver
 	palClearPad(md->enport, md->enpad);
@@ -61,7 +61,7 @@ void motorSet(MotorDriver *md, int8_t p) {
 
 		// update forces
 		if (p > 0) {
-			pwmEnableChannel(md->pwm, 0, md->offset + p);
+			pwmEnableChannel(md->pwm, 0, md->pwmoffset + p);
 			if (newdir) {
 				pwmDisableChannel(md->pwm, 1);
 			}
@@ -69,7 +69,7 @@ void motorSet(MotorDriver *md, int8_t p) {
 			if (newdir) {
 				pwmDisableChannel(md->pwm, 0);
 			}
-			pwmEnableChannel(md->pwm, 1, md->offset - p);
+			pwmEnableChannel(md->pwm, 1, md->pwmoffset - p);
 		}
 	}
 

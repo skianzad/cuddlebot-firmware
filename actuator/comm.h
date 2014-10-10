@@ -14,6 +14,9 @@ Vancouver, B.C. V6T 1Z4 Canada
 #ifndef _COMM_H_
 #define _COMM_H_
 
+#include <ch.h>
+#include <hal.h>
+
 /* Message metadata. */
 typedef struct {
 	uint8_t addr;               // message address

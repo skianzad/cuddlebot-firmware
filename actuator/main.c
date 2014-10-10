@@ -49,9 +49,7 @@ CommDriver CD1 = {
 MotorDriver MD1 = {
 	.pwm = &PWMD1,
 	.enport = GPIOB,
-	.enpad = GPIOB_MOTOR_EN,
-	.offset = 0,
-	.pwmstate = 0
+	.enpad = GPIOB_MOTOR_EN
 };
 
 /* PWM configuration for Maxon motors. */
@@ -154,7 +152,7 @@ int main(void) {
 		}
 
 		sensor_vitals_t vitals;
-		sensorReadVitals(&vitals);
+		sensorConvert(&vitals);
 
 		chprintf(bss, "position = %d\r\n", vitals.position);
 		chprintf(bss, "pcos = %d\r\n", vitals.pcos);

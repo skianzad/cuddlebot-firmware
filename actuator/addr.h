@@ -12,6 +12,9 @@ Vancouver, B.C. V6T 1Z4 Canada
 #ifndef _ADDR_H_
 #define _ADDR_H_
 
+#include <stdbool.h>
+#include <stdint.h>
+
 // Board bitset addresses.
 #define ADDR_INVALID     0x00
 #define ADDR_RIBS        0x01

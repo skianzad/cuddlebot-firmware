@@ -12,6 +12,9 @@ Vancouver, B.C. V6T 1Z4 Canada
 #ifndef _SENSOR_H_
 #define _SENSOR_H_
 
+#include <ch.h>
+#include <hal.h>
+
 // vital sampling results
 typedef struct {
   uint16_t position;
@@ -37,6 +40,6 @@ Sensors sampled by this function:
 - vref 1V65
 
 */
-msg_t sensorReadVitals(sensor_vitals_t *vitals);
+msg_t sensorConvert(sensor_vitals_t *vitals);
 
 #endif /* _SENSOR_H_ */
