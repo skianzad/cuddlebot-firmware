@@ -100,15 +100,15 @@ int main(void) {
 	addrLoad();
 
 	// halt system if address is invalid
-	if (addrGet() == ADDRESS_INVALID) {
+	if (addrGet() == ADDR_INVALID) {
 		chSysHalt();
 	}
 
-	// start rs-485 serial driver
+	// start serial driver
 	commStart(&CD1);
 
 	// start motor
-	if (addrGet() == ADDRESS_PURR) {
+	if (addrGet() == ADDR_PURR) {
 		motorStart(&MD1, &PurrPWMConfig);
 	} else {
 		motorStart(&MD1, &MaxonPWMConfig);
@@ -124,7 +124,7 @@ int main(void) {
 		if (i-- <= 0) {
 			i = 10;
 
-			if (addrGet() == ADDRESS_PURR) {
+			if (addrGet() == ADDR_PURR) {
 				motorSet(&MD1, v);
 				// if (++v < 0) v = 0;
 			} else {
@@ -133,19 +133,19 @@ int main(void) {
 			}
 
 			switch (addrGet()) {
-			case ADDRESS_RIBS:
+			case ADDR_RIBS:
 				chprintf(bss, "I am the ribs motor!\r\n");
 				break;
-			case ADDRESS_HEAD_PITCH:
+			case ADDR_HEAD_PITCH:
 				chprintf(bss, "I am the head pitch motor!\r\n");
 				break;
-			case ADDRESS_HEAD_YAW:
+			case ADDR_HEAD_YAW:
 				chprintf(bss, "I am the head yaw motor!\r\n");
 				break;
-			case ADDRESS_SPINE:
+			case ADDR_SPINE:
 				chprintf(bss, "I am the spine motor!\r\n");
 				break;
-			case ADDRESS_PURR:
+			case ADDR_PURR:
 				chprintf(bss, "I am the purr motor!\r\n");
 				break;
 			default:

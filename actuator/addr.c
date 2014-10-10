@@ -14,7 +14,7 @@ Vancouver, B.C. V6T 1Z4 Canada
 
 #include "addr.h"
 
-uint8_t _local_addr = ADDRESS_INVALID;
+uint8_t _local_addr = ADDR_INVALID;
 
 void addrLoad(void) {
 	uint32_t addr = 0;
@@ -53,12 +53,12 @@ void addrLoad(void) {
 
 	// map addresses
 	switch (addr) {
-	case 0b0000: addrGet() = ADDRESS_HEAD_PITCH; break;
-	case 0b1010: addrGet() = ADDRESS_HEAD_YAW; break;
-	case 0b0101: addrGet() = ADDRESS_SPINE; break;
-	case 0b1111: addrGet() = ADDRESS_PURR; break;
-	case 0b1101: addrGet() = ADDRESS_RIBS; break;
-	default: addrGet() = ADDRESS_INVALID;
+	case 0b0000: addrGet() = ADDR_HEAD_PITCH; break;
+	case 0b1010: addrGet() = ADDR_HEAD_YAW; break;
+	case 0b0101: addrGet() = ADDR_SPINE; break;
+	case 0b1111: addrGet() = ADDR_PURR; break;
+	case 0b1101: addrGet() = ADDR_RIBS; break;
+	default: addrGet() = ADDR_INVALID;
 	}
 }
 
