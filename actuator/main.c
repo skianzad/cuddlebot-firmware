@@ -39,8 +39,8 @@ CommDriver CD1 = {
 	.sd = &SD3,
 	.acb = addrIsSelf,
 	.scb = NULL,
-	.enport = GPIOB,
-	.enpad = GPIOB_RS485_TXEN,
+	.txenport = GPIOB,
+	.txenpad = GPIOB_RS485_TXEN,
 	.prio = LOWPRIO,
 	.timeout = MS2ST(1)
 };

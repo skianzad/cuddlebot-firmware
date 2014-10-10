@@ -217,18 +217,16 @@ msg_t comm_lld_thread(void *arg) {
 			meta.len = 2;
 		}
 
-		// enable RS-485 driver
-		palSetPad(comm->enport, comm->enpad);
 		// transmit response
 		comm_lld_transmit(comm, &meta);
-		// disable RS-485 driver
-		palClearPad(comm->enport, comm->enpad);
 	}
 
 	return RDY_OK;
 }
 
 void commStart(CommDriver *comm) {
+	// enable RS-485 driver
+	palSetPad(comm->txenport, comm->txenpad);
 	// start serial driver
 	sdStart(comm->sd, NULL);
 	// start listening thread
@@ -246,5 +244,5 @@ void commStop(CommDriver *comm) {
 	// stop serial driver
 	sdStop(comm->sd);
 	// disable RS-485 driver
-	palClearPad(comm->enport, comm->enpad);
+	palClearPad(comm->txenport, comm->txenpad);
 }

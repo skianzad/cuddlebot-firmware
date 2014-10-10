@@ -62,8 +62,8 @@ typedef struct {
   SerialDriver *sd;           // serial driver
   const commacb_t acb;        // address check callback
   const commscb_t scb;        // service callback
-  const ioportid_t enport;    // RS-485 enable port
-  const ioportmask_t enpad;   // RS-485 enable pad in port
+  const ioportid_t txenport;    // RS-485 enable port
+  const ioportmask_t txenpad;   // RS-485 enable pad in port
   const tprio_t prio;         // service thread priority
   const systime_t timeout;    // RS-485 comm timeout
   // internal state
