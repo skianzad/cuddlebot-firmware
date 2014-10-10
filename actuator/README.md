@@ -42,3 +42,23 @@ Transfer rate: 1 KB/sec, 560 bytes/write.
 ...
 (gdb) continue
 ```
+
+## Accessing additional sensors
+
+The firmware does not make use of sensor data other than for
+calculating the position of the motor. The unused sensors and reasons
+for not using the data follow:
+
+- Internal temperature: slow to sample and the damage is already done
+  once we sense a dangerous temperature.
+- KMZ60 temperature: accuracy is very limited compared to internal 
+  temperature sensor and the damage is already done once we sense a
+  dangerous temperature.
+- Torque: change in value on high torque is small and the robot is 
+  designed to be pliable, making the torque sensor less useful.
+- Current: the current is related to the voltage output, which is
+  related to the PWM output, meaning we have access to the same 
+  information via the PWM setting. Furthermore, we may simply limit
+  the PWM output to prevent overheating the motor altogether.
+
+You may find code to access the sensors in commit 88c597f.
