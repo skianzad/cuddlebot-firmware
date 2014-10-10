@@ -14,9 +14,11 @@ Vancouver, B.C. V6T 1Z4 Canada
 
 #include "addr.h"
 #include "pid.h"
-#include "sensor.h"
 
 msg_t pidCalibrate(PIDDriver *pid) {
+	msg_t ret;
+	uint16_t pos;
+
 	// set motor direction based on position on board
 	switch (addrGet()) {
 	// case ADDR_HEAD_PITCH:
@@ -31,25 +33,30 @@ msg_t pidCalibrate(PIDDriver *pid) {
 	}
 
 	// send motor to starting position
-	motorSet(pid->md, 75);
+	motorSet(pid->md, 75 * pid->dir);
 	chThdSleepSeconds(1);
 
 	// sample position sensor
-	sensor_vitals_t vitals;
-	msg_t ret = sensorConvert(&vitals);
+	ret = motorPosition(pid->md, &pos);
 	if (ret != RDY_OK) {
 		return ret;
 	}
 
 	// save starting offset
-	pid->offset = vitals.position;
+	pid->offset = pos;
 
 	// send motor the other way
-	motorSet(pid->md, -75);
+	motorSet(pid->md, -75 * pid->dir);
 	chThdSleepSeconds(1);
 
+	// sample position sensor
+	ret = motorPosition(pid->md, &pos);
+	if (ret != RDY_OK) {
+		return ret;
+	}
+
 	// save limit offset
-	pid->limit = vitals.position;
+	pid->limit = pos;
 
 	// disable motor
 	motorSet(pid->md, 0);
@@ -59,12 +66,12 @@ msg_t pidCalibrate(PIDDriver *pid) {
 }
 
 int8_t pidUpdate(PIDDriver *pid, uint16_t value) {
-  int32_t error = value - pid->setpoint;
+	int32_t error = value - pid->setpoint;
 
-  // TODO: handle overflow
-  pid->integrator += error;
+	// TODO: handle overflow
+	pid->integrator += error;
 
-  int32_t output = pid->kp * error;
+	int32_t output = pid->kp * error;
 	output += pid->ki * pid->integrator;
 	output += pid->kd * (error - pid->lasterr);
 

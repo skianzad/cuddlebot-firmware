@@ -57,4 +57,15 @@ Set motor output.
 */
 void motorSet(MotorDriver *md, int8_t p);
 
+/*
+
+Get motor mosition.
+
+@param md The motor driver
+@param p The address to store the rotary position of the motor between
+          0 and 65535
+
+*/
+msg_t motorPosition(MotorDriver *md, uint16_t *p);
+
 #endif /* _MOTOR_H_ */

@@ -32,7 +32,6 @@ limitations under the License.
 #include "addr.h"
 #include "comm.h"
 #include "motor.h"
-#include "sensor.h"
 
 /* Communications driver. */
 CommDriver CD1 = {
@@ -150,16 +149,6 @@ int main(void) {
 				chprintf(bss, "I have no address!\r\n");
 			}
 		}
-
-		sensor_vitals_t vitals;
-		sensorConvert(&vitals);
-
-		chprintf(bss, "position = %d\r\n", vitals.position);
-		chprintf(bss, "pcos = %d\r\n", vitals.pcos);
-		chprintf(bss, "psin = %d\r\n", vitals.psin);
-		chprintf(bss, "torque = %d\r\n", vitals.torque);
-		chprintf(bss, "current = %d\r\n", vitals.current);
-		chprintf(bss, "vref = %d\r\n", vitals.vref);
 
 		// sleep
 		chThdSleepMilliseconds(100);
