@@ -9,8 +9,8 @@ Vancouver, B.C. V6T 1Z4 Canada
 
 */
 
-#ifndef _ADDRESS_H_
-#define _ADDRESS_H_
+#ifndef _ADDR_H_
+#define _ADDR_H_
 
 // Board bitset addresses.
 #define ADDRESS_INVALID     0x00
@@ -20,9 +20,6 @@ Vancouver, B.C. V6T 1Z4 Canada
 #define ADDRESS_HEAD_YAW    0x08
 #define ADDRESS_HEAD_PITCH  0x10
 
-// Board address type.
-typedef uint8_t cm_address_t;
-
 /*
 
 Board address.
@@ -30,11 +27,11 @@ Board address.
 This value should not change after a call to `addrRead()`.
 
 */
-extern cm_address_t local_addr;
+extern uint8_t _local_addr;
 
 /*
 
-Read the board address and save to `local_addr`.
+Read the board address.
 
 The actuator boards are arranged from rear to head of the CuddleBot
 in the following order:
@@ -52,7 +49,10 @@ This function should be invoked during system initialization and
 before configuring interrupt handlers and higher priority threads.
 
 */
-void addrRead(void);
+void addrLoad(void);
+
+/* Get the board address. */
+#define addrGet() (_local_addr)
 
 /*
 
@@ -61,6 +61,6 @@ Check if the input address matches the board address.
 @param addr input address
 
 */
-bool addrIsSelf(cm_address_t addr);
+bool addrIsSelf(uint8_t addr);
 
-#endif /* _ADDRESS_H_ */
+#endif /* _ADDR_H_ */

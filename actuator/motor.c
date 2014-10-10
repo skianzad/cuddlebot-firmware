@@ -16,7 +16,6 @@ Vancouver, B.C. V6T 1Z4 Canada
 #include <ch.h>
 #include <hal.h>
 
-#include "addr.h"
 #include "motor.h"
 
 void motorStart(MotorDriver *md, PWMConfig *pwmcfg) {

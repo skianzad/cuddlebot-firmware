@@ -34,7 +34,7 @@ limitations under the License.
 #include "motor.h"
 #include "sensor.h"
 
-/* Communications driver 1. */
+/* Communications driver. */
 CommDriver CD1 = {
 	.sd = &SD3,
 	.acb = addrIsSelf,
@@ -97,10 +97,10 @@ int main(void) {
 	chSysInit();
 
 	// read board address
-	addrRead();
+	addrLoad();
 
 	// halt system if address is invalid
-	if (local_addr == ADDRESS_INVALID) {
+	if (addrGet() == ADDRESS_INVALID) {
 		chSysHalt();
 	}
 
@@ -108,7 +108,7 @@ int main(void) {
 	commStart(&CD1);
 
 	// start motor
-	if (local_addr == ADDRESS_PURR) {
+	if (addrGet() == ADDRESS_PURR) {
 		motorStart(&MD1, &PurrPWMConfig);
 	} else {
 		motorStart(&MD1, &MaxonPWMConfig);
@@ -124,7 +124,7 @@ int main(void) {
 		if (i-- <= 0) {
 			i = 10;
 
-			if (local_addr == ADDRESS_PURR) {
+			if (addrGet() == ADDRESS_PURR) {
 				motorSet(&MD1, v);
 				// if (++v < 0) v = 0;
 			} else {
@@ -132,7 +132,7 @@ int main(void) {
 				v = -v;
 			}
 
-			switch (local_addr) {
+			switch (addrGet()) {
 			case ADDRESS_RIBS:
 				chprintf(bss, "I am the ribs motor!\r\n");
 				break;
