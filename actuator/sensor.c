@@ -59,6 +59,7 @@ static const ADCConversionGroup adcgrpcfg = {
 	  ADC_SMPR1_SMP_SENSOR(ADC_SAMPLE_480) |  // internal temperature, min 10 µs
 	  ADC_SMPR1_SMP_AN13(ADC_SAMPLE_15) |     // motor pos cos
 	  ADC_SMPR1_SMP_AN12(ADC_SAMPLE_15) |     // motor pos sin
+	  ADC_SMPR1_SMP_AN11(ADC_SAMPLE_15) |     // motor pos temperature
 	  ADC_SMPR1_SMP_AN10(ADC_SAMPLE_15)),     // torque
 	.smpr2 = (
 	  ADC_SMPR2_SMP_AN9(ADC_SAMPLE_15) |      // vref 1V65
@@ -66,17 +67,15 @@ static const ADCConversionGroup adcgrpcfg = {
 	.sqr1 = ADC_SQR1_NUM_CH(ADC_GRP_NUM_CHANNELS),
 	.sqr2 = 0,
 	.sqr3 = (
-	  ADC_SQR3_SQ6_N(ADC_CHANNEL_IN9) |       // vref 1V65
-	  ADC_SQR3_SQ5_N(ADC_CHANNEL_IN8) |       // current
-	  ADC_SQR3_SQ4_N(ADC_CHANNEL_IN10) |      // torque
-	  ADC_SQR3_SQ3_N(ADC_CHANNEL_IN12) |      // pos sin
-	  ADC_SQR3_SQ2_N(ADC_CHANNEL_IN13) |      // pos cos
-	  ADC_SQR3_SQ1_N(ADC_CHANNEL_SENSOR))     // internal temperature
+	  ADC_SQR3_SQ5_N(ADC_CHANNEL_IN9) |       // vref 1V65
+	  ADC_SQR3_SQ4_N(ADC_CHANNEL_IN8) |       // current
+	  ADC_SQR3_SQ3_N(ADC_CHANNEL_IN10) |      // torque
+	  ADC_SQR3_SQ2_N(ADC_CHANNEL_IN12) |      // pos sin
+	  ADC_SQR3_SQ1_N(ADC_CHANNEL_IN13))       // pos cos
 };
 
 // idiomatic access to sample buffer
 typedef struct {
-	adcsample_t temperature;
 	adcsample_t pos_cos;
 	adcsample_t pos_sin;
 	adcsample_t torque;
@@ -134,12 +133,12 @@ msg_t sensorReadVitals(sensor_vitals_t *vitals) {
 	- Avg_Slope = 2.5 mV/°C
 
 	*/
-	// calculate voltage based on 12-bit sampling 0V to 3V3 range
-	int32_t temp = (samples->temperature * 33000) / 4096;
-	// apply formula to convert to °C multiplicative factor 10000
-	temp = ((temp - 7600) / 25) + 250000;
-	// scale back to units of °C
-	vitals->temperature = temp / 10000; // ±1°C
+	// // calculate voltage based on 12-bit sampling 0V to 3V3 range
+	// int32_t temp = (samples->temperature * 33000) / 4096;
+	// // apply formula to convert to °C multiplicative factor 10000
+	// temp = ((temp - 7600) / 25) + 250000;
+	// // scale back to units of °C
+	// vitals->temperature = temp / 10000; // ±1°C
 
 	/*
 

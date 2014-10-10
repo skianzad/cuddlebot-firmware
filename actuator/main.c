@@ -156,7 +156,6 @@ int main(void) {
 		sensor_vitals_t vitals;
 		sensorReadVitals(&vitals);
 
-		chprintf(bss, "temperature = %d\r\n", vitals.temperature);
 		chprintf(bss, "position = %d\r\n", vitals.position);
 		chprintf(bss, "pcos = %d\r\n", vitals.pcos);
 		chprintf(bss, "psin = %d\r\n", vitals.psin);

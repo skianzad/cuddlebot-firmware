@@ -14,7 +14,6 @@ Vancouver, B.C. V6T 1Z4 Canada
 
 // vital sampling results
 typedef struct {
-  int16_t temperature;
   uint16_t position;
   int16_t torque;
   int16_t current;
