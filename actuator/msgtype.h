@@ -21,6 +21,8 @@ Vancouver, B.C. V6T 1Z4 Canada
 #define MSGTYPE_SETPIDRESP         32
 #define MSGTYPE_SETPOINTREQ        33
 #define MSGTYPE_SETPOINTRESP       34
+#define MSGTYPE_TESTREQ            253
+#define MSGTYPE_TESTRESP           254
 #define MSGTYPE_ERRORRESP          255
 
 #pragma pack(push, 1)  /* set alignment to 1 byte boundary */
@@ -54,6 +56,11 @@ typedef struct {
 } msgtype_setpointreq_t;
 
 typedef msgtype_noop_t msgtype_setpointresp_t;
+typedef msgtype_noop_t msgtype_testreq_t;
+typedef {
+	uint16_t n;                           // offset 0x00, # of bytes
+	char result[0];                       // offset 0x02, C string
+} msgtype_testresp_t;
 
 #pragma pack(pop)   /* restore original alignment from stack */
 
