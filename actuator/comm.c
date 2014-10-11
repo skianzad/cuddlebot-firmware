@@ -73,7 +73,7 @@ msg_t comm_lld_fillbuff(comm_lld_meta *meta) {
 		uint16_t i;
 		uint16_t len = meta->len + 2;
 		for (i = 0; i < len; i++) {
-			ret = sdGetTimeout(&SD3, MS2ST(1));
+			ret = sdGetTimeout(&SD3, S2ST(10));
 			if (ret < RDY_OK) {
 				return ret;
 			}
@@ -86,15 +86,15 @@ msg_t comm_lld_fillbuff(comm_lld_meta *meta) {
 		}
 	}
 
-	// read data in 100ms => 1152 bytes @ 115200 baud
-	ret = sdReadTimeout(&SD3, comm_buf, meta->len, MS2ST(100));
+	// read data
+	ret = sdReadTimeout(&SD3, comm_buf, meta->len, S2ST(10));
 	if (ret < 0) {
 		return ret;
 	}
 
 	// read checksum
 	uint16_t crcexpect;
-	ret = sdReadTimeout(&SD3, (uint8_t *)&crcexpect, 2, MS2ST(1));
+	ret = sdReadTimeout(&SD3, (uint8_t *)&crcexpect, 2, S2ST(10));
 	if (ret < 0) {
 		return ret;
 	}
@@ -125,7 +125,7 @@ msg_t comm_lld_receive(comm_lld_meta *meta) {
 	msg_t ret;
 
 	// read address, message type, and data length
-	ret = sdReadTimeout(&SD3, &meta->addr, 4, MS2ST(1));
+	ret = sdReadTimeout(&SD3, &meta->addr, 4, S2ST(10));
 	if (ret < 0) {
 		return ret;
 	}
