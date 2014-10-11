@@ -14,7 +14,7 @@ Vancouver, B.C. V6T 1Z4 Canada
 #ifndef _MSGTYPE_H_
 #define _MSGTYPE_H_
 
-#define MSGTYPE_MULTIMSG           0
+#define MSGTYPE_PREAMBLE           0
 #define MSGTYPE_PINGREQ            1
 #define MSGTYPE_PINGRESP           2
 #define MSGTYPE_SETPIDREQ          31
@@ -28,28 +28,29 @@ Vancouver, B.C. V6T 1Z4 Canada
 typedef struct {} msgtype_noop_t;
 
 typedef struct {
-	uint8_t n;                            // offset 0x00
-} msgtype_multimsg_t;
+	uint8_t n;                            // offset 0x00, # of messages
+} msgtype_preamble_t;
 
 typedef msgtype_noop_t msgtype_pingreq_t;
 typedef msgtype_noop_t msgtype_pingresp_t;
 
 typedef struct {
-	uint16_t kp;                          // offset 0x00
-	uint16_t ki;                          // offset 0x02
-	uint16_t kd;                          // offset 0x04
-	uint16_t setpoint;                    // offset 0x08
+	uint16_t kp;                          // offset 0x00, P coefficient
+	uint16_t ki;                          // offset 0x02, I coefficient
+	uint16_t kd;                          // offset 0x04, D coefficient
+	uint16_t setpoint;                    // offset 0x08, setpoint
 } msgtype_setpidreq_t;
 
 typedef struct {
-	uint16_t duration;                    // offset 0x00
-	uint16_t setpoint;                    // offset 0x02
+	uint16_t duration;                    // offset 0x00, duration in ms
+	uint16_t setpoint;                    // offset 0x02, setpoint
 } msgtype_setpoint_t;
 
 typedef struct {
-	uint16_t delay;                       // offset 0x00
-	uint16_t loop;                        // offset 0x02
-	msgtype_setpoint_t points[0];         // offset 0x04
+	uint16_t delay;                       // offset 0x00, delay in ms
+	uint16_t loop;                        // offset 0x02, loop
+	uint16_t n;                           // offset 0x04, # of points
+	msgtype_setpoint_t points[0];         // offset 0x08, setpoints
 } msgtype_setpointreq_t;
 
 typedef msgtype_noop_t msgtype_setpointresp_t;
