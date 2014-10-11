@@ -13,6 +13,7 @@ Vancouver, B.C. V6T 1Z4 Canada
 #include <hal.h>
 
 #include "addr.h"
+#include "msgtype.h"
 
 uint8_t _local_addr = ADDR_INVALID;
 

@@ -229,7 +229,7 @@ msg_t comm_lld_thread(void *arg) {
 		if (ret < RDY_OK) {
 			int16_t err = ret;
 			// transmit error
-			meta.type = MSGTYPE_ERRORRESP;
+			meta.type = MSGTYPE_NAK;
 			meta.buf = (uint8_t *)&err;
 			meta.len = 2;
 		}
