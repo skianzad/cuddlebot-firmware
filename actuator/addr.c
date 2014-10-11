@@ -64,5 +64,5 @@ void addrLoad(void) {
 }
 
 bool addrIsSelf(uint8_t addr) {
-	return (addr & _local_addr) != 0 ? true : false;
+	return (addr == _local_addr) != 0 ? true : false;
 }
