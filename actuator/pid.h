@@ -19,10 +19,10 @@ Vancouver, B.C. V6T 1Z4 Canada
 
 typedef struct {
 	// coefficients
-	uint16_t setpoint;
 	uint16_t kp;
 	uint16_t ki;
 	uint16_t kd;
+	uint16_t setpoint;
 	// private: calibration
 	uint16_t offset;
 	uint16_t limit;
