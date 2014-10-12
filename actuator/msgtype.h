@@ -16,6 +16,7 @@ Vancouver, B.C. V6T 1Z4 Canada
 
 /* Board addresses. */
 #define ADDR_INVALID                    0
+#define ADDR_ANY                        'a'
 #define ADDR_RIBS                       'r'
 #define ADDR_PURR                       'p'
 #define ADDR_SPINE                      's'

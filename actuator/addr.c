@@ -62,7 +62,3 @@ void addrLoad(void) {
 	default: addrGet() = ADDR_INVALID;
 	}
 }
-
-bool addrIsSelf(uint8_t addr) {
-	return (addr == _local_addr) != 0 ? true : false;
-}

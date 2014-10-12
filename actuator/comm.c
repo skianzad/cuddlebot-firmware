@@ -24,10 +24,10 @@ typedef struct {
 	uint8_t *buf;               // message data buffer
 } comm_lld_meta;
 
-/* Message data buffer */
+/* Message data buffer. */
 static uint8_t comm_buf[1024];
 
-/* Comm handler memory stack. */
+/* Comm handler memory addr_queue. */
 static WORKING_AREA(comm_wa, 128);
 
 /* Comm handler thread handle */
@@ -58,7 +58,7 @@ uint32_t comm_lld_crc32(const uint8_t *buf, const size_t len) {
 
 /*
 
-Fill buffer to length.
+Fill buffer to length, ignoring messages not addressed to self or any.
 
 @param meta The message metadata
 
@@ -66,9 +66,10 @@ Fill buffer to length.
 msg_t comm_lld_fillbuff(comm_lld_meta *meta) {
 	msg_t ret;
 
-	// ignore messages not addressed to self
+	// ignore messages not addressed to self or any
 	// ignore message data larger than the size of the buffer
-	if (!addrIsSelf(meta->addr) || meta->len > sizeof(comm_buf)) {
+	if (!(addrIsSelf(meta->addr) || addrIsAny(meta->addr)) ||
+	    meta->len > sizeof(comm_buf)) {
 		// ignore data and checksum
 		uint16_t i;
 		uint16_t len = meta->len + 2;
@@ -213,15 +214,54 @@ msg_t comm_lld_thread(void *arg) {
 		chThdExit(RDY_RESET);
 	}
 
+listen:
+
+	// restart serial driver to reset queues
+	sdStop(&SD3);
+	chThdSleepMilliseconds(2);
+	sdStart(&SD3, NULL);
+
 	while (!chThdShouldTerminate()) {
+		uint8_t nmsg = 0;
+		uint8_t addr_queue[5];
+		uint8_t addr_queue_i;
 
 		// receive master requests
 		if (comm_lld_receive(&meta) < RDY_OK) {
-			// restart serial driver to clear buffers
-			sdStop(&SD3);
-			sdStart(&SD3, NULL);
-			// continue receiving
-			continue;
+			goto listen;
+		}
+
+		// intercept preamble for batch messages
+		if (addrIsAny(meta.addr)) {
+
+			// verify message contents
+			if (meta.type != MSGTYPE_PREAMBLE ||
+			    meta.len != sizeof(msgtype_header_t) ||
+			    meta.buf == NULL) {
+				goto listen;
+			}
+
+			// get number of messages
+			nmsg = ((msgtype_header_t *)meta.buf)->n;
+
+			// limit number of messages in batch to 5 (one per actuator)
+			if (nmsg > sizeof(addr_queue)) {
+				goto listen;
+			}
+
+			// capture messages
+			for (addr_queue_i = 0; addr_queue_i < nmsg; addr_queue_i++) {
+				// receive message
+				if (comm_lld_receive(&meta) < RDY_OK) {
+					goto listen;
+				}
+				// save address in the address queue
+				addr_queue[addr_queue_i] = meta.addr;
+				// pause when addressed to self
+				if (addrIsSelf(meta.addr)) {
+					break;
+				}
+			}
 		}
 
 		// service requests
@@ -234,6 +274,31 @@ msg_t comm_lld_thread(void *arg) {
 			meta.len = 2;
 		}
 
+		// handle batch messages
+		if (nmsg > 0) {
+			comm_lld_meta msg;
+
+			// ignore messages not addressed to self
+			for (; addr_queue_i < nmsg; addr_queue_i++) {
+				if (comm_lld_receive(&msg) < RDY_OK) {
+					goto listen;
+				}
+			}
+
+			// wait for turn to send
+			for (addr_queue_i = 0; addr_queue_i < nmsg; addr_queue_i++) {
+				if (addrIsSelf(addr_queue[addr_queue_i])) {
+					if (comm_lld_transmit(&meta) < RDY_OK) {
+						goto listen;
+					}
+				} else if (comm_lld_receive(&msg) < RDY_OK) {
+					goto listen;
+				}
+			}
+
+			continue;
+		}
+
 		// transmit response
 		comm_lld_transmit(&meta);
 	}
@@ -244,8 +309,6 @@ msg_t comm_lld_thread(void *arg) {
 void commStart(commscb_t scb) {
 	// enable RS-485 driver
 	palSetPad(GPIOB, GPIOB_RS485_TXEN);
-	// start serial driver
-	sdStart(&SD3, NULL);
 	// start listening thread
 	comm_tp = chThdCreateStatic(comm_wa, sizeof(comm_wa),
 	                            LOWPRIO, comm_lld_thread, scb);

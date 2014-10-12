@@ -58,6 +58,15 @@ Check if the input address matches the board address.
 @param addr input address
 
 */
-bool addrIsSelf(uint8_t addr);
+#define addrIsSelf(addr) (addr == addrGet())
+
+/*
+
+Check if the input address matches the "any" address.
+
+@param addr input address
+
+*/
+#define addrIsAny(addr) (addr == ADDR_ANY)
 
 #endif /* _ADDR_H_ */
