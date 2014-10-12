@@ -1,6 +1,6 @@
 /*
 
-Cuddlemaster - Copyright (C) 2014 Michael Phan-Ba
+Cuddlebot actuator firmware - Copyright (C) 2014 Michael Phan-Ba
 
 Property of SPIN Research Group
 ICICS/CS Building X508-2366 Main Mall
