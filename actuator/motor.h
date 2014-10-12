@@ -15,14 +15,7 @@ Vancouver, B.C. V6T 1Z4 Canada
 #include <ch.h>
 #include <hal.h>
 
-/*
-
-Start motor driver.
-
-@param md The motor driver
-@param pwm The PWM driver configuration
-
-*/
+/* Start motor driver. */
 void motorStart(void);
 
 /* Stop motor driver. */
