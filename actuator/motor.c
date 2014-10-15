@@ -16,12 +16,23 @@ Vancouver, B.C. V6T 1Z4 Canada
 
 #include "addr.h"
 #include "motor.h"
+#include "msgtype.h"
 
 // Number of channels to be sampled for ADC1.
 #define ADC_GRP_NUM_CHANNELS 3
 
+// idiomatic access to sample buffer
+typedef struct {
+	adcsample_t pos_cos;
+	adcsample_t pos_sin;
+	adcsample_t vref;
+} motor_lld_sample_t;
+
 static pwmcnt_t pwmoffset;
 static int8_t pwmstate;
+static int8_t dir = 0;
+static float lobound = 0;
+static float hibound = 0;
 
 /* PWM configuration for Maxon motors. */
 static PWMConfig pwmcfg = {
@@ -72,9 +83,9 @@ static const ADCConversionGroup adcgrpcfg = {
 	.sqr1 = ADC_SQR1_NUM_CH(ADC_GRP_NUM_CHANNELS),
 	.sqr2 = 0,
 	.sqr3 = (
-	  ADC_SQR3_SQ5_N(ADC_CHANNEL_IN9) |       // vref 1V65
-	  ADC_SQR3_SQ2_N(ADC_CHANNEL_IN12) |      // pos sin
-	  ADC_SQR3_SQ1_N(ADC_CHANNEL_IN13))       // pos cos
+	  ADC_SQR3_SQ3_N(ADC_CHANNEL_IN12) |      // pos cos
+	  ADC_SQR3_SQ2_N(ADC_CHANNEL_IN13) |      // pos sin
+	  ADC_SQR3_SQ1_N(ADC_CHANNEL_IN9))        // vref 1V65
 };
 
 void motorStart(void) {
@@ -86,10 +97,42 @@ void motorStart(void) {
 	// reset state
 	pwmoffset = pwmcfg.period - 127;
 	pwmstate = 0;
+
 	// disable the motor driver
 	palClearPad(GPIOB, GPIOB_MOTOR_EN);
 	// start the pwm peripherable
 	pwmStart(&PWMD1, &pwmcfg);
+
+	// enable temperature compensation
+	palSetPad(GPIOB, GPIOB_POS_TCCEN);
+	// enable position sensor
+	palClearPad(GPIOB, GPIOB_POS_NEN);
+	// wait for sensor to power up (ChibiOS will delay 1ms)
+	chThdSleepMicroseconds(110);
+
+	// set motor direction based on position on board
+	switch (addrGet()) {
+	case ADDR_SPINE:
+		dir = -1;
+		break;
+	default:
+		dir = 1;
+	}
+
+	// send motor to starting position
+	motorSet(-70);
+	chThdSleepSeconds(1);
+	// save lower bound
+	lobound = motorGet();
+
+	// send motor the other way
+	motorSet(70);
+	chThdSleepSeconds(1);
+	// save higher bound
+	hibound = motorGet();
+
+	// disable motor
+	motorSet(0);
 }
 
 void motorStop(void) {
@@ -97,12 +140,19 @@ void motorStop(void) {
 	palClearPad(GPIOB, GPIOB_MOTOR_EN);
 	// stop the pwm peripherable
 	pwmStop(&PWMD1);
+	// disable position sensor
+	palSetPad(GPIOB, GPIOB_POS_NEN);
 }
 
 void motorSet(int8_t p) {
 	// input is restricted to [-128, 127] by data type
 	if (p == -128) {
 		p = -127;
+	}
+
+	// set direction
+	if (dir < 0) {
+		p = -p;
 	}
 
 	if (pwmstate == p) {
@@ -141,44 +191,48 @@ void motorSet(int8_t p) {
 	pwmstate = p;
 }
 
-msg_t motorPosition(uint16_t *p) {
+float motorGet(void) {
 	// sample buffer
 	static adcsample_t buf[ADC_GRP_NUM_CHANNELS];
-
-	// enable temperature compensation
-	palSetPad(GPIOB, GPIOB_POS_TCCEN);
-
-	// enable position sensor
-	palClearPad(GPIOB, GPIOB_POS_NEN);
 
 	// start the adc peripherable
 	adcStart(&ADCD1, NULL);
 	// sample the sensors
-	msg_t err = adcConvert(&ADCD1, &adcgrpcfg, (adcsample_t *)&buf, 1);
-
-	// disable position sensor
-	palSetPad(GPIOB, GPIOB_POS_NEN);
+	msg_t err = adcConvert(&ADCD1, &adcgrpcfg, &buf[0], 1);
 
 	// return on error
 	if (err != RDY_OK) {
-		return err;
+		return 0;
 	}
 
-	// Position (in radians) = atan2(pcos, psin)
-	//
-	// Peak-to-peak voltage for sine and cosine are 0.56 * VCC typical
-	// and we adjust output to compensate: pos_adj = pos_cos *
-	// (0.5/0.56).
-	float pcos = buf[0] - buf[2];
-	float psin = buf[1] - buf[2];
+	// Position (in radians) = atan2(psin, pcos)
+	float psin = buf[1] - buf[0];
+	float pcos = buf[2] - buf[0];
 	// calculate sine based on 12-bit sampling
-	pcos = pcos * M_2_PI * 0.893f / 2048.0f;
+	psin = psin * M_2_PI / 2048.0f;
 	// calculate sine based on 12-bit sampling
-	psin = psin * M_2_PI * 0.893f / 2048.0f;
+	pcos = pcos * M_2_PI / 2048.0f;
 	// calculate radians
-	float prad = atan2f(pcos, psin);
-	// bound to between -π and π and save to output
-	*p = ((fmod(prad, M_PI) / M_PI) + 1.0) * 0xffff;
+	float pos = atan2f(psin, pcos);
 
-	return RDY_OK;
+	// flip axis when sensor is mounted upside-down relative to arm
+	switch (addrGet()) {
+	case ADDR_RIBS:
+	case ADDR_SPINE:
+	case ADDR_HEAD_PITCH:
+		if (pos < 0) {
+			pos = -M_PI - pos;
+		} else {
+			pos = M_PI - pos;
+		}
+		break;
+	default:
+		break;
+	}
+
+	return pos;
+}
+
+float motorCGet(void) {
+	return motorGet() - lobound;
 }

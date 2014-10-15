@@ -16,46 +16,54 @@ Vancouver, B.C. V6T 1Z4 Canada
 
 /* Board addresses. */
 #define ADDR_INVALID                    0
-#define ADDR_ANY                        'a'
-#define ADDR_RIBS                       'r'
-#define ADDR_PURR                       'p'
-#define ADDR_SPINE                      's'
-#define ADDR_HEAD_YAW                   'x'
-#define ADDR_HEAD_PITCH                 'y'
+#define ADDR_RIBS                       'r' // ribs actuator
+#define ADDR_PURR                       'p' // purr motor
+#define ADDR_SPINE                      's' // spine actuator
+#define ADDR_HEAD_YAW                   'x' // head yaw actuator
+#define ADDR_HEAD_PITCH                 'y'	// head pitch actuator
 
 /* Message types. */
-#define MSGTYPE_ACK                     '+' // acknowledge
-#define MSGTYPE_NAK                     '-' // negative acknowledge
-#define MSGTYPE_PREAMBLE                'h' // preamble header
-#define MSGTYPE_PING                    '?'
-#define MSGTYPE_PONG                    '.'
-#define MSGTYPE_SETPID                  'c'
-#define MSGTYPE_SETPOINT                'p'
-#define MSGTYPE_TEST                    't'
+#define MSGTYPE_PING                    '?' // ping an actuator
+#define MSGTYPE_PONG                    '.' // respond to ping
+#define MSGTYPE_SETPID                  'c' // send PID coefficients
+#define MSGTYPE_SETPOINT                'p' // send setpoints
+#define MSGTYPE_TEST                    't' // run internal tests
+#define MSGTYPE_VALUE                   'v' // get position value
 
 #pragma pack(push, 1)  /* set alignment to 1 byte boundary */
 
+/* Message header. */
 typedef struct {
-	uint8_t n;                            // offset 0x00, # of messages
+	uint16_t addr;                        // offset 0x00, board address
+	uint16_t type;                        // offset 0x02, message type
+	uint16_t size;                        // offset 0x04, message size
 } msgtype_header_t;
 
+/* Message to set PID coefficients. */
 typedef struct {
 	uint16_t kp;                          // offset 0x00, P coefficient
 	uint16_t ki;                          // offset 0x02, I coefficient
 	uint16_t kd;                          // offset 0x04, D coefficient
-	uint16_t setpoint;                    // offset 0x08, setpoint
 } msgtype_setpid_t;
 
+/* Setpoint. */
 typedef struct {
 	uint16_t duration;                    // offset 0x00, duration in ms
 	uint16_t setpoint;                    // offset 0x02, setpoint
-} setpoint_t;
+} msgtype_setpoint_data_t;
 
+/* Setpoint group. */
+typedef struct {
+	uint16_t loop;                        // offset 0x00, loop
+	uint16_t n;                           // offset 0x02, # of points
+	msgtype_setpoint_data_t points[0];    // offset 0x04, setpoints
+} msgtype_setgroup_t;
+
+/* Message to send next setpoints. */
 typedef struct {
 	uint16_t delay;                       // offset 0x00, delay in ms
-	uint16_t loop;                        // offset 0x02, loop
-	uint16_t n;                           // offset 0x04, # of points
-	setpoint_t points[0];                 // offset 0x08, setpoints
+	uint16_t n;                           // offset 0x02, # of groups
+	msgtype_setgroup_t groups[0];         // offset 0x04, setgroups
 } msgtype_setpoint_t;
 
 #pragma pack(pop)   /* restore original alignment from stack */

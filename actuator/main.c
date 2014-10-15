@@ -25,6 +25,8 @@ limitations under the License.
 
 */
 
+#include <math.h>
+
 #include <ch.h>
 #include <hal.h>
 #include <chprintf.h>
@@ -32,6 +34,8 @@ limitations under the License.
 #include "addr.h"
 #include "comm.h"
 #include "motor.h"
+#include "pid.h"
+#include "service.h"
 
 // Application entry point.
 int main(void) {
@@ -55,10 +59,29 @@ int main(void) {
 	motorStart();
 
 	// start serial driver
-	// commStart(NULL);
+	commStart(serviceHandler);
+
+	// start PID driver
+	PIDDriver PID1;
+	pidStart(&PID1);
+
+	const uint32_t frequency = 1000;
+	PID1.kp = 100.0f;
+	PID1.ki = 1.0f / frequency;
+	PID1.kd = 1000.0f / frequency;
+	PID1.setpoint = 2.5f;
 
 	for (;;) {
-		chThdSleepMilliseconds(100);
+		// chprintf((BaseSequentialStream *)&SD3, "I am %c\r\n", addrGet());
+		chThdSleepMilliseconds(1);
+		float p = motorCGet();
+
+		// for debugging; remember to reduce frequency
+		// chprintf((BaseSequentialStream *)&SD3, "%d.%03d\r\n",
+		//          (int)(p),
+		//          (int)(1000 * fmod(copysign(p, 1.0), 1.0)));
+
+		motorSet(pidUpdate(&PID1, p));
 	}
 
 	return 0;

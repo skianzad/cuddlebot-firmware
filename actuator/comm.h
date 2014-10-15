@@ -17,24 +17,30 @@ Vancouver, B.C. V6T 1Z4 Canada
 #include <ch.h>
 #include <hal.h>
 
+#include "msgtype.h"
+
 /*
 
 Message service callback.
 
-@param type The message type
-@param buf The message data buffer
-@param len The message data length
+@param sd The serial driver
+@param header The message header
 
 */
-typedef msg_t (*commscb_t)(uint8_t type, void *buf, size_t len);
+typedef msg_t (*commscb_t)(SerialDriver *sd, msgtype_header_t *header);
 
 /*
 
 Start the RS-485 driver.
 
+This function listens for requests from the master and services them
+synchronously. Batched commands sent on the bus are serviced as they
+arrive. The master must ensure that at most one message requiring a
+response be sent per batch, and that this message be the last sent.
+
 The service callback function `scb` is run in the same thread as the
-serial handler and the metadata structure passed to it is only valid
-until the function exits. The function must not use the metadata
+serial handler and the header structure passed to it is only valid
+until the function exits. The function must not use the header
 structure after the function exits.
 
 */

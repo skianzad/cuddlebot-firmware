@@ -19,17 +19,13 @@ Vancouver, B.C. V6T 1Z4 Canada
 
 typedef struct {
 	// coefficients
-	uint16_t kp;
-	uint16_t ki;
-	uint16_t kd;
-	uint16_t setpoint;
-	// private: calibration
-	uint16_t offset;
-	uint16_t limit;
-	int8_t dir;
+	float kp;
+	float ki;
+	float kd;
+	float setpoint;
 	// private: internal state
-	int32_t lasterr;
-	int32_t integrator;
+	float lasterr;
+	float integrator;
 } PIDDriver;
 
 /*
@@ -49,6 +45,6 @@ Set PID setpoint.
 @param setpoint The setpoint
 
 */
-int8_t pidUpdate(PIDDriver *pid, uint16_t setpoint);
+int8_t pidUpdate(PIDDriver *pid, float setpoint);
 
 #endif // _PID_H_

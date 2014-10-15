@@ -30,14 +30,10 @@ Set motor output.
 */
 void motorSet(int8_t p);
 
-/*
+/* Get motor mosition, in radians between [-π, π]. */
+float motorGet(void);
 
-Get motor mosition.
-
-@param p The address to store the rotary position of the motor between
-          0 and 65535
-
-*/
-msg_t motorPosition(uint16_t *p);
+/* Get motor calibrated position, in radians between [0, 2π]. */
+float motorCGet(void);
 
 #endif /* _MOTOR_H_ */

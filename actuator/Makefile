@@ -95,6 +95,7 @@ CSRC = $(PORTSRC) \
        comm.c \
        motor.c \
        pid.c \
+       service.c \
        \
        main.c
 
