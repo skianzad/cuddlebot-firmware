@@ -40,7 +40,7 @@ float pidSet(PIDDriver *pid, float setpoint) {
 	return pid->setpoint;
 }
 
-int8_t pidUpdate(PIDDriver *pid, float value) {
+float pidUpdate(PIDDriver *pid, float value) {
 	float error = value - pid->setpoint;
 
 	pid->integrator += error;

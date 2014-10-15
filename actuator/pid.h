@@ -68,6 +68,6 @@ Update PID for position value.
 @return Motor PWM value
 
 */
-int8_t pidUpdate(PIDDriver *pid, float value);
+float pidUpdate(PIDDriver *pid, float value);
 
 #endif // _PID_H_
