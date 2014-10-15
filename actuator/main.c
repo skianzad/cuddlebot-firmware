@@ -37,7 +37,16 @@ limitations under the License.
 #include "pid.h"
 #include "service.h"
 
-// Application entry point.
+/* PID configuration. */
+const PIDConfig pidcfg = {
+	.kp = 127.0 / M_PI,
+	.ki = 1.0,
+	.kd = -1.0,
+	.setpoint = 2.5,
+	.frequency = 1000
+};
+
+/* Application entry point. */
 int main(void) {
 	// initialize the system
 	// - HAL: initialize the configured device drivers and perform
@@ -55,21 +64,20 @@ int main(void) {
 		chSysHalt();
 	}
 
-	// start motor
+	// initialize and start the motor driver
+	// - PWM: initialize with configuration for purr or Maxon motors
+	// - motor driver and position sensor ICs are activated
+	// - position sensor is calibrated
+	motorInit();
 	motorStart();
+	motorCalibrate();
 
 	// start serial driver
 	commStart(serviceHandler);
 
 	// start PID driver
 	PIDDriver PID1;
-	pidStart(&PID1);
-
-	const uint32_t frequency = 1000;
-	PID1.kp = 100.0f;
-	PID1.ki = 1.0f / frequency;
-	PID1.kd = 1000.0f / frequency;
-	PID1.setpoint = 2.5f;
+	pidInit(&PID1, &pidcfg);
 
 	for (;;) {
 		// chprintf((BaseSequentialStream *)&SD3, "I am %c\r\n", addrGet());

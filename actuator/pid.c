@@ -17,13 +17,27 @@ Vancouver, B.C. V6T 1Z4 Canada
 #include "addr.h"
 #include "pid.h"
 
-msg_t pidStart(PIDDriver *pid) {
-	// reset coefficients
-	pid->kp = pid->ki = pid->kd = 0;
+void pidInit(PIDDriver *pid, const PIDConfig *config) {
+	// set coefficients
+	pid->kp = config->kp;
+	pid->ki = config->ki / config->frequency;
+	pid->kd = config->kd / config->frequency;
+	// set starting setpoint
+	pid->setpoint = config->setpoint;
 	// reset state
-	pid->setpoint = pid->lasterr = pid->integrator = 0;
+	pid->lasterr = pid->integrator = 0;
+}
 
-	return RDY_OK;
+float pidSet(PIDDriver *pid, float setpoint) {
+	float delta = setpoint - pid->setpoint;
+	// constrain delta to [-1 deg, +1 deg]
+	if (fabs(delta) > M_2_PI / 360.0) {
+		delta = copysign(1.0, delta);
+	}
+	// update setpoint
+	pid->setpoint += delta;
+	// return actual value
+	return pid->setpoint;
 }
 
 int8_t pidUpdate(PIDDriver *pid, float value) {

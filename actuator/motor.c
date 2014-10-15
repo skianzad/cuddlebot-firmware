@@ -18,21 +18,17 @@ Vancouver, B.C. V6T 1Z4 Canada
 #include "motor.h"
 #include "msgtype.h"
 
-// Number of channels to be sampled for ADC1.
-#define ADC_GRP_NUM_CHANNELS 3
-
-// idiomatic access to sample buffer
+/* Motor driver state. */
 typedef struct {
-	adcsample_t pos_cos;
-	adcsample_t pos_sin;
-	adcsample_t vref;
-} motor_lld_sample_t;
+	pwmcnt_t pwmoffset;                   // minimum PWM to move motor
+	int8_t pwmstate;                      // last PWM value
+	int8_t dir;                           // motor direction
+	float lobound;                        // lower bound on position
+	float hibound;                        // upper bound on position
+} MotorDriver;
 
-static pwmcnt_t pwmoffset;
-static int8_t pwmstate;
-static int8_t dir = 0;
-static float lobound = 0;
-static float hibound = 0;
+/* Motor driver instance. */
+static MotorDriver MD1;
 
 /* PWM configuration for Maxon motors. */
 static PWMConfig pwmcfg = {
@@ -49,6 +45,16 @@ static PWMConfig pwmcfg = {
 	.cr2 = 0,
 	.dier = 0
 };
+
+// idiomatic access to sample buffer
+typedef struct {
+	adcsample_t pos_cos;
+	adcsample_t pos_sin;
+	adcsample_t vref;
+} motor_lld_sample_t;
+
+// Number of channels to be sampled for ADC1.
+#define ADC_GRP_NUM_CHANNELS 3
 
 /*
 
@@ -88,16 +94,28 @@ static const ADCConversionGroup adcgrpcfg = {
 	  ADC_SQR3_SQ1_N(ADC_CHANNEL_IN9))        // vref 1V65
 };
 
-void motorStart(void) {
+void motorInit(void) {
 	// adjust PWM config for purr motor
 	if (addrGet() == ADDR_PURR) {
 		pwmcfg.frequency = 207 * 202898;    //  42.0 MHz; divider = 2
 		pwmcfg.period = 207;                // 137.3 KHz
 	}
-	// reset state
-	pwmoffset = pwmcfg.period - 127;
-	pwmstate = 0;
 
+	// reset state
+	MD1.pwmoffset = pwmcfg.period - 127;
+	MD1.pwmstate = 0;
+
+	// set motor direction based on position on board
+	switch (addrGet()) {
+	case ADDR_SPINE:
+		MD1.dir = -1;
+		break;
+	default:
+		MD1.dir = 1;
+	}
+}
+
+void motorStart(void) {
 	// disable the motor driver
 	palClearPad(GPIOB, GPIOB_MOTOR_EN);
 	// start the pwm peripherable
@@ -109,30 +127,6 @@ void motorStart(void) {
 	palClearPad(GPIOB, GPIOB_POS_NEN);
 	// wait for sensor to power up (ChibiOS will delay 1ms)
 	chThdSleepMicroseconds(110);
-
-	// set motor direction based on position on board
-	switch (addrGet()) {
-	case ADDR_SPINE:
-		dir = -1;
-		break;
-	default:
-		dir = 1;
-	}
-
-	// send motor to starting position
-	motorSet(-70);
-	chThdSleepSeconds(1);
-	// save lower bound
-	lobound = motorGet();
-
-	// send motor the other way
-	motorSet(70);
-	chThdSleepSeconds(1);
-	// save higher bound
-	hibound = motorGet();
-
-	// disable motor
-	motorSet(0);
 }
 
 void motorStop(void) {
@@ -144,6 +138,23 @@ void motorStop(void) {
 	palSetPad(GPIOB, GPIOB_POS_NEN);
 }
 
+void motorCalibrate(void) {
+	// send motor to starting position
+	motorSet(-70);
+	chThdSleepSeconds(1);
+	// save lower bound
+	MD1.lobound = motorGet();
+
+	// send motor the other way
+	motorSet(70);
+	chThdSleepSeconds(1);
+	// save higher bound
+	MD1.hibound = motorGet();
+
+	// disable motor
+	motorSet(0);
+}
+
 void motorSet(int8_t p) {
 	// input is restricted to [-128, 127] by data type
 	if (p == -128) {
@@ -151,11 +162,11 @@ void motorSet(int8_t p) {
 	}
 
 	// set direction
-	if (dir < 0) {
+	if (MD1.dir < 0) {
 		p = -p;
 	}
 
-	if (pwmstate == p) {
+	if (MD1.pwmstate == p) {
 
 		// no-op
 
@@ -166,16 +177,16 @@ void motorSet(int8_t p) {
 
 	} else {
 		// start motors
-		if (pwmstate == 0) {
+		if (MD1.pwmstate == 0) {
 			palSetPad(GPIOB, GPIOB_MOTOR_EN);
 		}
 
 		// new direction when signs don't match
-		bool newdir = (pwmstate == 0) || ((pwmstate < 0) ^ (p < 0));
+		bool newdir = (MD1.pwmstate == 0) || ((MD1.pwmstate < 0) ^ (p < 0));
 
 		// update forces
 		if (p > 0) {
-			pwmEnableChannel(&PWMD1, 0, pwmoffset + p);
+			pwmEnableChannel(&PWMD1, 0, MD1.pwmoffset + p);
 			if (newdir) {
 				pwmDisableChannel(&PWMD1, 1);
 			}
@@ -183,12 +194,12 @@ void motorSet(int8_t p) {
 			if (newdir) {
 				pwmDisableChannel(&PWMD1, 0);
 			}
-			pwmEnableChannel(&PWMD1, 1, pwmoffset - p);
+			pwmEnableChannel(&PWMD1, 1, MD1.pwmoffset - p);
 		}
 	}
 
 	// update state
-	pwmstate = p;
+	MD1.pwmstate = p;
 }
 
 float motorGet(void) {
@@ -234,5 +245,5 @@ float motorGet(void) {
 }
 
 float motorCGet(void) {
-	return motorGet() - lobound;
+	return motorGet() - MD1.lobound;
 }

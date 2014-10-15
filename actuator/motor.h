@@ -15,11 +15,17 @@ Vancouver, B.C. V6T 1Z4 Canada
 #include <ch.h>
 #include <hal.h>
 
+/* Initialize motor driver. */
+void motorInit(void);
+
 /* Start motor driver. */
 void motorStart(void);
 
 /* Stop motor driver. */
 void motorStop(void);
+
+/* Calibrate motor driver. */
+void motorCalibrate(void);
 
 /*
 

@@ -17,6 +17,7 @@ Vancouver, B.C. V6T 1Z4 Canada
 
 #include "motor.h"
 
+/* PID driver state. */
 typedef struct {
 	// coefficients
 	float kp;
@@ -28,23 +29,45 @@ typedef struct {
 	float integrator;
 } PIDDriver;
 
+/* PID configuration. */
+typedef struct {
+	float kp;                             // The p coefficient value
+	float ki;                             // The i coefficient value
+	float kd;                             // The d coefficient value
+	float setpoint;                       // Starting setpoint
+	float frequency;                      // Frequency of updates, in Hz
+} PIDConfig;
+
 /*
 
-Start and calibrate PID driver.
+Initialize PID driver.
 
 @param pid The PID driver
+@param config The PID driver configuration
 
 */
-msg_t pidStart(PIDDriver *pid);
+void pidInit(PIDDriver *pid, const PIDConfig *config);
 
 /*
 
-Set PID setpoint.
+Set PID setpoint, limiting the maximum change in value to 1 deg.
 
 @param pid The PID driver
 @param setpoint The setpoint
+@return Actual setpoint value accepted
 
 */
-int8_t pidUpdate(PIDDriver *pid, float setpoint);
+float pidSet(PIDDriver *pid, float setpoint);
+
+/*
+
+Update PID for position value.
+
+@param pid The PID driver
+@param value The position value
+@return Motor PWM value
+
+*/
+int8_t pidUpdate(PIDDriver *pid, float value);
 
 #endif // _PID_H_
