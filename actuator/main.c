@@ -35,7 +35,7 @@ limitations under the License.
 #include "comm.h"
 #include "motor.h"
 #include "pid.h"
-#include "service.h"
+#include "state.h"
 
 /* PID configuration. */
 const PIDConfig pidcfg = {
@@ -90,17 +90,17 @@ int main(void) {
 
 		chprintf((BaseSequentialStream *)&SD3, "I am %c\r\n", addrGet());
 
-/*
-		chThdSleepMilliseconds(1);
-		float p = motorCGet();
+		/*
+		    chThdSleepMilliseconds(1);
+		    float p = motorCGet();
 
-		// for debugging; remember to reduce frequency
-		// chprintf((BaseSequentialStream *)&SD3, "%d.%03d\r\n",
-		//          (int)(p),
-		//          (int)(1000 * fmod(copysign(p, 1.0), 1.0)));
+		    // for debugging; remember to reduce frequency
+		    // chprintf((BaseSequentialStream *)&SD3, "%d.%03d\r\n",
+		    //          (int)(p),
+		    //          (int)(1000 * fmod(copysign(p, 1.0), 1.0)));
 
-		motorSet(pidUpdate(&PID1, p));
-*/
+		    motorSet(pidUpdate(&PID1, p));
+		*/
 	}
 
 	return 0;

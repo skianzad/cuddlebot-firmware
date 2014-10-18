@@ -13,18 +13,24 @@ Vancouver, B.C. V6T 1Z4 Canada
 #include <hal.h>
 #include <chprintf.h>
 
+#include "addr.h"
 #include "motor.h"
 #include "msgtype.h"
-#include "service.h"
+#include "state.h"
 
-msg_t serviceHandler(SerialDriver *sd, msgtype_header_t *header) {
-	BaseSequentialStream *chp = (BaseSequentialStream *)sd;
+msg_t stateCommCallback(SerialDriver *sd,
+                        const msgtype_header_t *header,
+                        const char *buf) {
 	msg_t ret = RDY_OK;
 
+	(void)buf;
+
 	switch (header->type) {
-	case MSGTYPE_PING:
-		ret = sdPut(sd, MSGTYPE_PONG);
+	case MSGTYPE_PING: {
+		msgtype_shortmsg_t shortmsg = {addrGet(), MSGTYPE_PONG, 0, 0};
+		ret = sdWrite(sd, (uint8_t *)&shortmsg, sizeof(msgtype_shortmsg_t));
 		break;
+	}
 
 	case MSGTYPE_SETPID:
 		break;
@@ -33,11 +39,11 @@ msg_t serviceHandler(SerialDriver *sd, msgtype_header_t *header) {
 		break;
 
 	case MSGTYPE_TEST:
-		chprintf(chp, "Hello World!\r\n");
+		chprintf((BaseSequentialStream *)sd, "Hello World!\r\n");
 		break;
 
 	case MSGTYPE_VALUE:
-		chprintf(chp, "%d\r\n", motorGet());
+		chprintf((BaseSequentialStream *)sd, "%d\r\n", motorGet());
 		break;
 
 	default:

@@ -47,6 +47,14 @@ typedef struct {
 	uint16_t crc16;                       // offset 0x00, crc-16 checksum
 } msgtype_footer_t;
 
+/* Short message. */
+typedef struct {
+	uint8_t addr;                         // offset 0x00, board address
+	uint8_t type;                         // offset 0x02, message type
+	uint16_t size;                        // offset 0x04, message size
+	uint16_t crc16;                       // offset 0x08, crc-16 checksum
+} msgtype_shortmsg_t;
+
 /* Message to set PID coefficients. */
 typedef struct {
 	float kp;                             // offset 0x00, P coefficient

@@ -9,8 +9,8 @@ Vancouver, B.C. V6T 1Z4 Canada
 
 */
 
-#ifndef _CRC32_H_
-#define _CRC32_H_
+#ifndef _STATE_H_
+#define _STATE_H_
 
 #include <ch.h>
 #include <hal.h>
@@ -21,10 +21,13 @@ Vancouver, B.C. V6T 1Z4 Canada
 
 Service messages from the RS-485 bus.
 
-@param chp The serial driver
+@param sd The serial driver
 @param header The message header
+@param buf The message data buffer
 
 */
-msg_t serviceHandler(SerialDriver *sd, msgtype_header_t *header);
+msg_t stateCommCallback(SerialDriver *sd,
+                        const msgtype_header_t *header,
+                        const char *buf);
 
-#endif // _CRC32_H_
+#endif // _STATE_H_
