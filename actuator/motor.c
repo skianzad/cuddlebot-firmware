@@ -140,13 +140,13 @@ void motorStop(void) {
 
 void motorCalibrate(void) {
 	// send motor to starting position
-	motorSet(-70);
+	motorSet(-40);
 	chThdSleepSeconds(1);
 	// save lower bound
 	MD1.lobound = motorGet();
 
 	// send motor the other way
-	motorSet(70);
+	motorSet(40);
 	chThdSleepSeconds(1);
 	// save higher bound
 	MD1.hibound = motorGet();
