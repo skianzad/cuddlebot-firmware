@@ -21,16 +21,6 @@ Vancouver, B.C. V6T 1Z4 Canada
 
 /*
 
-Message service callback.
-
-@param sd The serial driver
-@param header The message header
-
-*/
-typedef msg_t (*commscb_t)(SerialDriver *sd, msgtype_header_t *header);
-
-/*
-
 Start the RS-485 driver.
 
 This function listens for requests from the master and services them
@@ -38,15 +28,31 @@ synchronously. Batched commands sent on the bus are serviced as they
 arrive. The master must ensure that at most one message requiring a
 response be sent per batch, and that this message be the last sent.
 
-The service callback function `scb` is run in the same thread as the
-serial handler and the header structure passed to it is only valid
-until the function exits. The function must not use the header
-structure after the function exits.
+@param sdp The serial driver
 
 */
-void commStart(commscb_t scb);
+void commStart(SerialDriver *sdp);
 
-/* Stop the RS-485 driver. */
-void commStop(void);
+/*
+
+Stop the RS-485 driver.
+
+@param sdp The serial driver
+
+*/
+void commStop(SerialDriver *sdp);
+
+/*
+
+Receive master commands, ignoring messages not addressed to self.
+
+@param sdp The serial driver
+@param header Pointer to header struct to save header data
+@param buf Buffer for data, should be at least 1KB
+@param len Buffer size
+
+*/
+msg_t commReceive(SerialDriver *sdp, msgtype_header_t *header,
+  char *buf, size_t len);
 
 #endif // _COMM_H_

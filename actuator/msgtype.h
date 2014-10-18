@@ -14,6 +14,8 @@ Vancouver, B.C. V6T 1Z4 Canada
 #ifndef _MSGTYPE_H_
 #define _MSGTYPE_H_
 
+#include <stdint.h>
+
 /* Board addresses. */
 #define ADDR_INVALID                    0 // invalid address
 #define ADDR_RIBS                       1 // ribs actuator
@@ -35,16 +37,21 @@ Vancouver, B.C. V6T 1Z4 Canada
 
 /* Message header. */
 typedef struct {
-	uint16_t addr;                        // offset 0x00, board address
-	uint16_t type;                        // offset 0x02, message type
+	uint8_t addr;                         // offset 0x00, board address
+	uint8_t type;                         // offset 0x02, message type
 	uint16_t size;                        // offset 0x04, message size
 } msgtype_header_t;
 
+/* Message footer. */
+typedef struct {
+	uint16_t crc16;                       // offset 0x00, crc-16 checksum
+} msgtype_footer_t;
+
 /* Message to set PID coefficients. */
 typedef struct {
-	uint16_t kp;                          // offset 0x00, P coefficient
-	uint16_t ki;                          // offset 0x02, I coefficient
-	uint16_t kd;                          // offset 0x04, D coefficient
+	float kp;                             // offset 0x00, P coefficient
+	float ki;                             // offset 0x04, I coefficient
+	float kd;                             // offset 0x08, D coefficient
 } msgtype_setpid_t;
 
 /* Setpoint. */

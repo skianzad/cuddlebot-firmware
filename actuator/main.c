@@ -73,14 +73,25 @@ int main(void) {
 	motorCalibrate();
 
 	// start serial driver
-	commStart(serviceHandler);
+	commStart(&SD3);
 
 	// start PID driver
 	PIDDriver PID1;
 	pidInit(&PID1, &pidcfg);
 
 	for (;;) {
-		// chprintf((BaseSequentialStream *)&SD3, "I am %c\r\n", addrGet());
+		msgtype_header_t header;
+		char buf[1024];
+
+		if (commReceive(&SD3, &header, buf, sizeof(buf)) < RDY_OK) {
+			commStop(&SD3);
+			commStart(&SD3);
+			continue;
+		}
+
+		chprintf((BaseSequentialStream *)&SD3, "I am %c\r\n", addrGet());
+
+/*
 		chThdSleepMilliseconds(1);
 		float p = motorCGet();
 
@@ -90,6 +101,7 @@ int main(void) {
 		//          (int)(1000 * fmod(copysign(p, 1.0), 1.0)));
 
 		motorSet(pidUpdate(&PID1, p));
+*/
 	}
 
 	return 0;
