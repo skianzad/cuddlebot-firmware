@@ -44,6 +44,15 @@ void commStop(SerialDriver *sdp);
 
 /*
 
+Restart the RS-485 driver.
+
+@param sdp The serial driver
+
+*/
+void commRestart(SerialDriver *sdp);
+
+/*
+
 Receive master commands, ignoring messages not addressed to self.
 
 @param sdp The serial driver

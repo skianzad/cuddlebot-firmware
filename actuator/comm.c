@@ -33,6 +33,13 @@ void commStop(SerialDriver *sdp) {
 	palClearPad(GPIOB, GPIOB_RS485_TXEN);
 }
 
+void commRestart(SerialDriver *sdp) {
+	// stop serial driver
+	sdStop(sdp);
+	// start serial driver
+	sdStart(sdp, NULL);
+}
+
 msg_t commReceive(SerialDriver *sdp, msgtype_header_t *header,
                   char *buf, size_t len) {
 	msg_t ret;

@@ -84,8 +84,7 @@ int main(void) {
 		char buf[1024];
 
 		if (commReceive(&SD3, &header, buf, sizeof(buf)) < RDY_OK) {
-			commStop(&SD3);
-			commStart(&SD3);
+			commRestart(&SD3);
 			continue;
 		}
 
