@@ -95,11 +95,9 @@ int main(void) {
 		// msgtype_header_t header;
 		// char buf[1024];
 
-		chThdSleepMilliseconds(50);
-		msg_t c = chnGetTimeout(bcp, MS2ST(1));
-		chThdSleepMilliseconds(50);
+		msg_t c = chSequentialStreamGet(bsp);
+		chprintf(bsp, "%c", c);
 
-		// chprintf(bsp, "c=%d\r\n", c);
 		palTogglePad(GPIOB, GPIOB_LED0);
 		palTogglePad(GPIOB, GPIOB_LED1);
 
