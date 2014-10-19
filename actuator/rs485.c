@@ -76,10 +76,8 @@ static size_t writet(void *ip, const uint8_t *bp, size_t n, systime_t time) {
 	// lock system and UART
 	chSysLock();
 	chMtxLockS(&rsp->lock);
-	// save CR1 register value
-	uint16_t cr1 = rsp->uart->usart->CR1;
-	// disable receiver and enable transmitter
-	rsp->uart->usart->CR1 = (cr1 & ~USART_CR1_RE) | USART_CR1_TE;
+	// enable transmitter
+	rsp->uart->usart->CR1 |= USART_CR1_TE;
 	// enable RS-485 driver
 	palSetPad(GPIOB, GPIOB_RS485_TXEN);
 	// start sending
@@ -97,8 +95,8 @@ static size_t writet(void *ip, const uint8_t *bp, size_t n, systime_t time) {
 	}
 	// disable RS-485 driver
 	palClearPad(GPIOB, GPIOB_RS485_TXEN);
-	// reset CR1 registar value
-	rsp->uart->usart->CR1 = cr1;
+	// disable transmitter
+	rsp->uart->usart->CR1 &= ~USART_CR1_TE;
 	// unlock UART and system
 	chMtxUnlockS();
 	chSysUnlock();
@@ -111,6 +109,8 @@ static size_t readt(void *ip, uint8_t *bp, size_t n, systime_t time) {
 	// lock system and UART
 	chSysLock();
 	chMtxLockS(&rsp->lock);
+	// enable receiver
+	rsp->uart->usart->CR1 |= USART_CR1_RE;
 	// start receiving
 	uartStartReceiveI(rsp->uart, n, bp);
 	// wait until finished
@@ -119,6 +119,8 @@ static size_t readt(void *ip, uint8_t *bp, size_t n, systime_t time) {
 		// stop receiving due to error
 		n = uartStopReceiveI(rsp->uart);
 	}
+	// disable receiver
+	rsp->uart->usart->CR1 &= ~USART_CR1_RE;
 	// unlock UART and system
 	chMtxUnlockS();
 	chSysUnlock();
@@ -175,10 +177,8 @@ void rs485ObjectInit(RS485Driver *rsp, UARTDriver *uart) {
 void rs485Start(RS485Driver *rsp) {
 	// start UART driver
 	uartStart(rsp->uart, &uartcfg);
-	// disable transmitter
-	rsp->uart->usart->CR1 &= ~USART_CR1_TE;
-	// read and ignore anomalous '\0'
-	get(rsp);
+	// disable transmitter and receiver
+	rsp->uart->usart->CR1 &= ~(USART_CR1_TE | USART_CR1_RE);
 }
 
 void rs485Stop(RS485Driver *rsp) {
