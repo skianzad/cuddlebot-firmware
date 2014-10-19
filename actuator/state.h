@@ -15,7 +15,9 @@ Vancouver, B.C. V6T 1Z4 Canada
 #include <ch.h>
 #include <hal.h>
 
+#include "comm.h"
 #include "msgtype.h"
+#include "rs485.h"
 
 /*
 
@@ -26,7 +28,7 @@ Service messages from the RS-485 bus.
 @param buf The message data buffer
 
 */
-msg_t stateCommCallback(SerialDriver *sd,
+msg_t stateCommCallback(RS485Driver *sd,
                         const msgtype_header_t *header,
                         const char *buf);
 

@@ -35,6 +35,7 @@ limitations under the License.
 #include "comm.h"
 #include "motor.h"
 #include "pid.h"
+#include "rs485.h"
 #include "state.h"
 
 /* PID configuration. */
@@ -73,22 +74,49 @@ int main(void) {
 	motorCalibrate();
 
 	// start serial driver
-	commStart(&SD3);
+	rs485Init();
+	rs485Start(&RSD3);
+	// commStart(&SD3);
 
 	// start PID driver
 	PIDDriver PID1;
 	pidInit(&PID1, &pidcfg);
 
+	BaseChannel *bcp = (BaseChannel *)&RSD3;
+	BaseSequentialStream *bsp = (BaseSequentialStream *)&RSD3;
+	chprintf(bsp, "I am %d\r\n", addrGet());
+
+	palSetPadMode(GPIOB, GPIOB_LED0, PAL_MODE_OUTPUT_PUSHPULL);
+	palSetPadMode(GPIOB, GPIOB_LED1, PAL_MODE_OUTPUT_PUSHPULL);
+	palSetPad(GPIOB, GPIOB_LED0);
+	palClearPad(GPIOB, GPIOB_LED1);
+
 	for (;;) {
-		msgtype_header_t header;
-		char buf[1024];
+		// msgtype_header_t header;
+		// char buf[1024];
 
-		if (commReceive(&SD3, &header, buf, sizeof(buf)) < RDY_OK) {
-			commRestart(&SD3);
-			continue;
-		}
+		chThdSleepMilliseconds(50);
+		msg_t c = chnGetTimeout(bcp, MS2ST(1));
+		chThdSleepMilliseconds(50);
 
-		chprintf((BaseSequentialStream *)&SD3, "I am %c\r\n", addrGet());
+		// chprintf(bsp, "c=%d\r\n", c);
+		palTogglePad(GPIOB, GPIOB_LED0);
+		palTogglePad(GPIOB, GPIOB_LED1);
+
+		// if (
+		//   commReceive(&RSD3, &header, buf, sizeof(buf)) < RDY_OK ||
+		//   stateCommCallback(&RSD3, &header, buf) < RDY_OK
+		// ) {
+		//  continue;
+		// }
+
+		// if (
+		//   commReceive(&SD3, &header, buf, sizeof(buf)) < RDY_OK ||
+		//   stateCommCallback(&SD3, &header, buf) < RDY_OK
+		// ) {
+		//  commRestart(&SD3);
+		//  continue;
+		// }
 
 		/*
 		    chThdSleepMilliseconds(1);

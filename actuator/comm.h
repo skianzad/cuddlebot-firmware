@@ -18,6 +18,7 @@ Vancouver, B.C. V6T 1Z4 Canada
 #include <hal.h>
 
 #include "msgtype.h"
+#include "rs485.h"
 
 /*
 
@@ -31,7 +32,7 @@ response be sent per batch, and that this message be the last sent.
 @param sdp The serial driver
 
 */
-void commStart(SerialDriver *sdp);
+void commStart(RS485Driver *sdp);
 
 /*
 
@@ -40,7 +41,7 @@ Stop the RS-485 driver.
 @param sdp The serial driver
 
 */
-void commStop(SerialDriver *sdp);
+void commStop(RS485Driver *sdp);
 
 /*
 
@@ -49,7 +50,7 @@ Restart the RS-485 driver.
 @param sdp The serial driver
 
 */
-void commRestart(SerialDriver *sdp);
+void commRestart(RS485Driver *sdp);
 
 /*
 
@@ -61,7 +62,7 @@ Receive master commands, ignoring messages not addressed to self.
 @param len Buffer size
 
 */
-msg_t commReceive(SerialDriver *sdp, msgtype_header_t *header,
+msg_t commReceive(RS485Driver *sdp, msgtype_header_t *header,
   char *buf, size_t len);
 
 #endif // _COMM_H_

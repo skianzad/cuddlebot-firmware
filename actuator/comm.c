@@ -12,42 +12,42 @@ Vancouver, B.C. V6T 1Z4 Canada
 #include <ch.h>
 #include <hal.h>
 
+// #include <chprintf.h>
+
 #include "addr.h"
 #include "comm.h"
 #include "crc32.h"
 #include "msgtype.h"
+#include "rs485.h"
 
-void commStart(SerialDriver *sdp) {
-	// enable RS-485 driver
-	palSetPad(GPIOB, GPIOB_RS485_TXEN);
-	// start serial driver
-	sdStart(sdp, NULL);
-	// sleep 1ms for chip to wake up
-	chThdSleepMilliseconds(1);
+void commStart(RS485Driver *sdp) {
+	(void)sdp;
 }
 
-void commStop(SerialDriver *sdp) {
-	// stop serial driver
-	sdStop(sdp);
-	// disable RS-485 driver
-	palClearPad(GPIOB, GPIOB_RS485_TXEN);
+void commStop(RS485Driver *sdp) {
+	(void)sdp;
 }
 
-void commRestart(SerialDriver *sdp) {
-	// stop serial driver
-	sdStop(sdp);
-	// start serial driver
-	sdStart(sdp, NULL);
+void commRestart(RS485Driver *sdp) {
+	(void)sdp;
 }
 
-msg_t commReceive(SerialDriver *sdp, msgtype_header_t *header,
+msg_t commReceive(RS485Driver *sdp, msgtype_header_t *header,
                   char *buf, size_t len) {
+
+	// BaseSequentialStream *chp = (BaseSequentialStream *)sdp;
+
+	(void)sdp;
+	(void)header;
+	(void)buf;
+	(void)len;
+
 	msg_t ret;
 
 	for (;;) {
 
 		// receive address, message type, and message size
-		sdRead(sdp, (uint8_t *)header, sizeof(msgtype_header_t));
+		chnRead(sdp, (uint8_t *)header, sizeof(msgtype_header_t));
 
 		// buffer should be large enough to hold data
 		if (header->size > len) {
@@ -60,7 +60,7 @@ msg_t commReceive(SerialDriver *sdp, msgtype_header_t *header,
 			header->size += sizeof(msgtype_footer_t);
 			// take bytes off queue
 			while (header->size--) {
-				ret = sdGetTimeout(sdp, MS2ST(10));
+				ret = chnGetTimeout(sdp, MS2ST(10));
 				if (ret < RDY_OK) {
 					return ret;
 				}
@@ -69,16 +69,16 @@ msg_t commReceive(SerialDriver *sdp, msgtype_header_t *header,
 		}
 
 		// read with a timeout long enough to accept all data, plus 10ms slack
-		ret = sdReadTimeout(sdp, (uint8_t *)buf, header->size,
-		                    MS2ST((10240000 / 11520) + 11));
+		ret = chnReadTimeout(sdp, (uint8_t *)buf, header->size,
+		                     MS2ST((10240000 / 11520) + 11));
 		if (ret < RDY_OK) {
 			return ret;
 		}
 
 		// read footer
 		msgtype_footer_t footer;
-		ret = sdReadTimeout(sdp, (uint8_t *)&footer,
-		                    sizeof(msgtype_footer_t), MS2ST(10));
+		ret = chnReadTimeout(sdp, (uint8_t *)&footer,
+		                     sizeof(msgtype_footer_t), MS2ST(10));
 		if (ret < RDY_OK) {
 			return ret;
 		}
@@ -92,10 +92,6 @@ msg_t commReceive(SerialDriver *sdp, msgtype_header_t *header,
 		// all ok
 		return RDY_OK;
 	}
-
-
-
-	(void)buf;
 
 	return RDY_OK;
 }

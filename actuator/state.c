@@ -17,18 +17,23 @@ Vancouver, B.C. V6T 1Z4 Canada
 #include "motor.h"
 #include "msgtype.h"
 #include "state.h"
+#include "rs485.h"
 
-msg_t stateCommCallback(SerialDriver *sd,
+msg_t stateCommCallback(RS485Driver *sd,
                         const msgtype_header_t *header,
                         const char *buf) {
 	msg_t ret = RDY_OK;
 
+	BaseSequentialStream *chp = (BaseSequentialStream *)sd;
+
+	(void)sd;
+	(void)header;
 	(void)buf;
 
 	switch (header->type) {
 	case MSGTYPE_PING: {
 		msgtype_shortmsg_t shortmsg = {addrGet(), MSGTYPE_PONG, 0, 0};
-		ret = sdWrite(sd, (uint8_t *)&shortmsg, sizeof(msgtype_shortmsg_t));
+		ret = chnWrite(sd, (uint8_t *)&shortmsg, sizeof(msgtype_shortmsg_t));
 		break;
 	}
 
@@ -39,11 +44,11 @@ msg_t stateCommCallback(SerialDriver *sd,
 		break;
 
 	case MSGTYPE_TEST:
-		chprintf((BaseSequentialStream *)sd, "Hello World!\r\n");
+		chprintf(chp, "Hello World!\r\n");
 		break;
 
 	case MSGTYPE_VALUE:
-		chprintf((BaseSequentialStream *)sd, "%d\r\n", motorGet());
+		chprintf(chp, "%d\r\n", motorGet());
 		break;
 
 	default:

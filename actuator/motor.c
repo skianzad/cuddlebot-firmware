@@ -18,17 +18,7 @@ Vancouver, B.C. V6T 1Z4 Canada
 #include "motor.h"
 #include "msgtype.h"
 
-/* Motor driver state. */
-typedef struct {
-	pwmcnt_t pwmoffset;                   // minimum PWM to move motor
-	int8_t pwmstate;                      // last PWM value
-	int8_t dir;                           // motor direction
-	float lobound;                        // lower bound on position
-	float hibound;                        // upper bound on position
-} MotorDriver;
-
-/* Motor driver instance. */
-static MotorDriver MD1;
+MotorDriver MD1;
 
 /* PWM configuration for Maxon motors. */
 static PWMConfig pwmcfg = {

@@ -94,8 +94,8 @@ limitations under the License.
 #define GPIOB_PIN9                  9 // unused
 #define GPIOB_USART3_TX             10
 #define GPIOB_USART3_RX             11
-#define GPIOB_LED1                  12
-#define GPIOB_LED2                  13
+#define GPIOB_LED0                  12
+#define GPIOB_LED1                  13
 #define GPIOB_RS485_TXEN            14
 #define GPIOB_PIN15                 15 // unused
 
@@ -289,8 +289,8 @@ limitations under the License.
                                      PIN_MODE_INPUT(GPIOB_PIN9) |           \
                                      PIN_MODE_ALTERNATE(GPIOB_USART3_TX) |  \
                                      PIN_MODE_ALTERNATE(GPIOB_USART3_RX) |  \
+                                     PIN_MODE_INPUT(GPIOB_LED0) |           \
                                      PIN_MODE_INPUT(GPIOB_LED1) |           \
-                                     PIN_MODE_INPUT(GPIOB_LED2) |           \
                                      PIN_MODE_OUTPUT(GPIOB_RS485_TXEN) |    \
                                      PIN_MODE_INPUT(GPIOB_PIN15))
 #define VAL_GPIOB_OTYPER            (PIN_OTYPE_PUSHPULL(GPIOB_IVAL) |       \
@@ -305,8 +305,8 @@ limitations under the License.
                                      PIN_OTYPE_PUSHPULL(GPIOB_PIN9) |       \
                                      PIN_OTYPE_PUSHPULL(GPIOB_USART3_TX) |  \
                                      PIN_OTYPE_PUSHPULL(GPIOB_USART3_RX) |  \
+                                     PIN_OTYPE_PUSHPULL(GPIOB_LED0) |       \
                                      PIN_OTYPE_PUSHPULL(GPIOB_LED1) |       \
-                                     PIN_OTYPE_PUSHPULL(GPIOB_LED2) |       \
                                      PIN_OTYPE_PUSHPULL(GPIOB_RS485_TXEN) | \
                                      PIN_OTYPE_PUSHPULL(GPIOB_PIN15))
 #define VAL_GPIOB_OSPEEDR           (PIN_OSPEED_100M(GPIOB_IVAL) |          \
@@ -321,8 +321,8 @@ limitations under the License.
                                      PIN_OSPEED_100M(GPIOB_PIN9) |          \
                                      PIN_OSPEED_100M(GPIOB_USART3_TX) |     \
                                      PIN_OSPEED_100M(GPIOB_USART3_RX) |     \
+                                     PIN_OSPEED_100M(GPIOB_LED0) |          \
                                      PIN_OSPEED_100M(GPIOB_LED1) |          \
-                                     PIN_OSPEED_100M(GPIOB_LED2) |          \
                                      PIN_OSPEED_100M(GPIOB_RS485_TXEN) |    \
                                      PIN_OSPEED_100M(GPIOB_PIN15))
 #define VAL_GPIOB_PUPDR             (PIN_PUPDR_FLOATING(GPIOB_IVAL) |       \
@@ -337,8 +337,8 @@ limitations under the License.
                                      PIN_PUPDR_FLOATING(GPIOB_PIN9) |       \
                                      PIN_PUPDR_FLOATING(GPIOB_USART3_TX) |  \
                                      PIN_PUPDR_FLOATING(GPIOB_USART3_RX) |  \
+                                     PIN_PUPDR_FLOATING(GPIOB_LED0) |       \
                                      PIN_PUPDR_FLOATING(GPIOB_LED1) |       \
-                                     PIN_PUPDR_FLOATING(GPIOB_LED2) |       \
                                      PIN_PUPDR_FLOATING(GPIOB_RS485_TXEN) | \
                                      PIN_PUPDR_FLOATING(GPIOB_PIN15))
 #define VAL_GPIOB_ODR               (PIN_ODR_LOW(GPIOB_IVAL) |              \
@@ -353,8 +353,8 @@ limitations under the License.
                                      PIN_ODR_LOW(GPIOB_PIN9) |              \
                                      PIN_ODR_LOW(GPIOB_USART3_TX) |         \
                                      PIN_ODR_LOW(GPIOB_USART3_RX) |         \
+                                     PIN_ODR_LOW(GPIOB_LED0) |              \
                                      PIN_ODR_LOW(GPIOB_LED1) |              \
-                                     PIN_ODR_LOW(GPIOB_LED2) |              \
                                      PIN_ODR_LOW(GPIOB_RS485_TXEN) |        \
                                      PIN_ODR_LOW(GPIOB_PIN15))
 #define VAL_GPIOB_AFRL              (PIN_AFIO_AF(GPIOB_IVAL, 0) |           \
@@ -369,8 +369,8 @@ limitations under the License.
                                      PIN_AFIO_AF(GPIOB_PIN9, 0) |           \
                                      PIN_AFIO_AF(GPIOB_USART3_TX, 7) |      \
                                      PIN_AFIO_AF(GPIOB_USART3_RX, 7) |      \
+                                     PIN_AFIO_AF(GPIOB_LED0, 0) |           \
                                      PIN_AFIO_AF(GPIOB_LED1, 0) |           \
-                                     PIN_AFIO_AF(GPIOB_LED2, 0) |           \
                                      PIN_AFIO_AF(GPIOB_RS485_TXEN, 0) |     \
                                      PIN_AFIO_AF(GPIOB_PIN15, 0))
 
