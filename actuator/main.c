@@ -76,48 +76,40 @@ int main(void) {
 	// start serial driver
 	rs485Init();
 	rs485Start(&RSD3);
-	// commStart(&SD3);
 
 	// start PID driver
 	PIDDriver PID1;
 	pidInit(&PID1, &pidcfg);
 
-	BaseChannel *bcp = (BaseChannel *)&RSD3;
-	BaseSequentialStream *bsp = (BaseSequentialStream *)&RSD3;
-	chprintf(bsp, "I am %d\r\n", addrGet());
+	// typed channels
+	BaseChannel *chnp = (BaseChannel *)&RSD3;
+	BaseSequentialStream *chp = (BaseSequentialStream *)&RSD3;
 
 	palSetPadMode(GPIOB, GPIOB_LED0, PAL_MODE_OUTPUT_PUSHPULL);
 	palSetPadMode(GPIOB, GPIOB_LED1, PAL_MODE_OUTPUT_PUSHPULL);
 	palSetPad(GPIOB, GPIOB_LED0);
 	palClearPad(GPIOB, GPIOB_LED1);
 
+	// ignore anomalous '\0' char
+	chnGetTimeout(chnp, MS2ST(1));
+
 	for (;;) {
+
+		chprintf(chp, "%d", chSequentialStreamGet(chp));
+		palTogglePad(GPIOB, GPIOB_LED1);
+
 		// msgtype_header_t header;
 		// char buf[1024];
 
-		msg_t c = chSequentialStreamGet(bsp);
-		chprintf(bsp, "%c", c);
-
-		palTogglePad(GPIOB, GPIOB_LED0);
-		palTogglePad(GPIOB, GPIOB_LED1);
-
 		// if (
-		//   commReceive(&RSD3, &header, buf, sizeof(buf)) < RDY_OK ||
-		//   stateCommCallback(&RSD3, &header, buf) < RDY_OK
+		//   commReceive(chnp, &header, buf, sizeof(buf)) < RDY_OK ||
+		//   commService(chnp, &header, buf) < RDY_OK
 		// ) {
-		//  continue;
-		// }
-
-		// if (
-		//   commReceive(&SD3, &header, buf, sizeof(buf)) < RDY_OK ||
-		//   stateCommCallback(&SD3, &header, buf) < RDY_OK
-		// ) {
-		//  commRestart(&SD3);
-		//  continue;
+		// 	chThdSleepMilliseconds(1);
+		// 	continue;
 		// }
 
 		/*
-		    chThdSleepMilliseconds(1);
 		    float p = motorCGet();
 
 		    // for debugging; remember to reduce frequency
