@@ -18,20 +18,20 @@ Vancouver, B.C. V6T 1Z4 Canada
 
 /* Board addresses. */
 #define ADDR_INVALID                    0 // invalid address
-#define ADDR_RIBS                       1 // ribs actuator
-#define ADDR_PURR                       2 // purr motor
-#define ADDR_SPINE                      3 // spine actuator
-#define ADDR_HEAD_YAW                   4 // head yaw actuator
-#define ADDR_HEAD_PITCH                 5	// head pitch actuator
+#define ADDR_RIBS                       'r' // ribs actuator
+#define ADDR_PURR                       'p' // purr motor
+#define ADDR_SPINE                      's' // spine actuator
+#define ADDR_HEAD_YAW                   'x' // head yaw actuator
+#define ADDR_HEAD_PITCH                 'y'	// head pitch actuator
 
 /* Message types. */
 #define MSGTYPE_INVALID                 0 // invalid message
-#define MSGTYPE_PING                    1 // ping an actuator
-#define MSGTYPE_PONG                    2 // respond to ping
-#define MSGTYPE_SETPID                  3 // send PID coefficients
-#define MSGTYPE_SETPOINT                4 // send setpoints
-#define MSGTYPE_TEST                    5 // run internal tests
-#define MSGTYPE_VALUE                   6 // get position value
+#define MSGTYPE_PING                    '?' // ping an actuator
+#define MSGTYPE_PONG                    '.' // respond to ping
+#define MSGTYPE_SETPID                  'c' // send PID coefficients
+#define MSGTYPE_SETPOINT                'g' // send setpoints
+#define MSGTYPE_TEST                    't' // run internal tests
+#define MSGTYPE_VALUE                   'v' // get position value
 
 #pragma pack(push, 1)  /* set alignment to 1 byte boundary */
 

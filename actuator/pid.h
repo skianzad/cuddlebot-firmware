@@ -27,6 +27,7 @@ typedef struct {
 	// private: internal state
 	float lasterr;
 	float integrator;
+  Mutex lock;
 } PIDDriver;
 
 /* PID configuration. */
@@ -47,6 +48,16 @@ Initialize PID driver.
 
 */
 void pidInit(PIDDriver *pid, const PIDConfig *config);
+
+/*
+
+Change the PID coefficients.
+
+@param pid The PID driver
+@param config The PID driver configuration for kp, ki, and kd
+
+*/
+void pidCoeff(PIDDriver *pid, const PIDConfig *config);
 
 /*
 

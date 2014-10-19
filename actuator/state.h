@@ -21,15 +21,12 @@ Vancouver, B.C. V6T 1Z4 Canada
 
 /*
 
-Service messages from the RS-485 bus.
+Update actuator state.
 
-@param sd The serial driver
 @param header The message header
-@param buf The message data buffer
+@param dp The message data buffer
 
 */
-msg_t stateCommCallback(RS485Driver *sd,
-                        const msgtype_header_t *header,
-                        const char *buf);
+msg_t stateUpdate(const msgtype_header_t *header, const char *dp);
 
 #endif // _STATE_H_

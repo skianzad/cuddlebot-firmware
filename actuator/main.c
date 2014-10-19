@@ -87,27 +87,26 @@ int main(void) {
 
 	palSetPadMode(GPIOB, GPIOB_LED0, PAL_MODE_OUTPUT_PUSHPULL);
 	palSetPadMode(GPIOB, GPIOB_LED1, PAL_MODE_OUTPUT_PUSHPULL);
-	palSetPad(GPIOB, GPIOB_LED0);
+	palClearPad(GPIOB, GPIOB_LED0);
 	palClearPad(GPIOB, GPIOB_LED1);
 
 	// ignore anomalous '\0' char
 	chnGetTimeout(chnp, MS2ST(1));
 
 	for (;;) {
+		msgtype_header_t header;
+		char buf[1024];
 
-		chprintf(chp, "%d", chSequentialStreamGet(chp));
-		palTogglePad(GPIOB, GPIOB_LED1);
-
-		// msgtype_header_t header;
-		// char buf[1024];
-
-		// if (
-		//   commReceive(chnp, &header, buf, sizeof(buf)) < RDY_OK ||
-		//   commService(chnp, &header, buf) < RDY_OK
-		// ) {
-		// 	chThdSleepMilliseconds(1);
-		// 	continue;
-		// }
+		// handle computer commands
+		if (
+		  commReceive(chnp, &header, buf, sizeof(buf)) < RDY_OK ||
+		  commService(chnp, &header, buf) < RDY_OK ||
+		  stateUpdate(&header, buf) < RDY_OK
+		) {
+		 palTogglePad(GPIOB, GPIOB_LED1);
+		} else {
+		 palTogglePad(GPIOB, GPIOB_LED0);
+		}
 
 		/*
 		    float p = motorCGet();

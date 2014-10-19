@@ -9,78 +9,76 @@ Vancouver, B.C. V6T 1Z4 Canada
 
 */
 
+#include <math.h>
+
 #include <ch.h>
 #include <hal.h>
 
-// #include <chprintf.h>
+#include <chprintf.h>
 
 #include "addr.h"
 #include "comm.h"
 #include "crc32.h"
+#include "motor.h"
 #include "msgtype.h"
 #include "rs485.h"
 
-void commStart(RS485Driver *sdp) {
-	(void)sdp;
-}
-
-void commStop(RS485Driver *sdp) {
-	(void)sdp;
-}
-
-void commRestart(RS485Driver *sdp) {
-	(void)sdp;
-}
-
-msg_t commReceive(RS485Driver *sdp, msgtype_header_t *header,
+msg_t commReceive(BaseChannel *chnp, msgtype_header_t *header,
                   char *buf, size_t len) {
-
-	// BaseSequentialStream *chp = (BaseSequentialStream *)sdp;
-
-	(void)sdp;
-	(void)header;
-	(void)buf;
-	(void)len;
 
 	msg_t ret;
 
+	BaseSequentialStream *chp = (BaseSequentialStream *)chnp;
+
 	for (;;) {
 
-		// receive address, message type, and message size
-		chnRead(sdp, (uint8_t *)header, sizeof(msgtype_header_t));
+		// read header
+		chSequentialStreamRead(chnp, &header->addr, 1);
 
-		// buffer should be large enough to hold data
-		if (header->size > len) {
+		// handle human-testable commands
+		switch (header->addr) {
+		case MSGTYPE_PING:
+		case MSGTYPE_TEST:
+		case MSGTYPE_VALUE:
+			header->type = header->addr;
+			header->size = 0;
+			return RDY_OK;
+		}
+
+		// read message type and message size
+		uint8_t *bp = ((uint8_t *)&header->type);
+		size_t n = chnReadTimeout(chnp, bp,
+		                          sizeof(*header) - sizeof(header->addr),
+		                          MS2ST(10));
+
+		// check header and buffer should be large enough to hold data
+		if (n != sizeof(*header) || header->size > len) {
 			return RDY_RESET;
 		}
 
-		// ignore messages not addressed to self
-		if (!addrIsSelf(header->addr)) {
-			// also ignore crc16 checksum
-			header->size += sizeof(msgtype_footer_t);
-			// take bytes off queue
-			while (header->size--) {
-				ret = chnGetTimeout(sdp, MS2ST(10));
-				if (ret < RDY_OK) {
-					return ret;
-				}
+		if (header->size) {
+			// read with a timeout long enough to accept all data, plus 10ms slack
+			ret = chnReadTimeout(chnp, (uint8_t *)buf, header->size,
+			                     MS2ST((len * 1000 / 11520) + 11));
+			if (ret < RDY_OK) {
+				return ret;
 			}
-			continue;
-		}
-
-		// read with a timeout long enough to accept all data, plus 10ms slack
-		ret = chnReadTimeout(sdp, (uint8_t *)buf, header->size,
-		                     MS2ST((10240000 / 11520) + 11));
-		if (ret < RDY_OK) {
-			return ret;
 		}
 
 		// read footer
 		msgtype_footer_t footer;
-		ret = chnReadTimeout(sdp, (uint8_t *)&footer,
+		ret = chnReadTimeout(chnp, (uint8_t *)&footer,
 		                     sizeof(msgtype_footer_t), MS2ST(10));
 		if (ret < RDY_OK) {
 			return ret;
+		}
+
+		rs485Wait((RS485Driver *)chnp);
+		chprintf(chp, "\1\2\0\0");
+
+		// ignore messages not addressed to self
+		if (!addrIsSelf(header->addr)) {
+			continue;
 		}
 
 		// verify checksum
@@ -90,8 +88,48 @@ msg_t commReceive(RS485Driver *sdp, msgtype_header_t *header,
 		}
 
 		// all ok
-		return RDY_OK;
+		break;
 	}
 
 	return RDY_OK;
+}
+
+msg_t commService(BaseChannel *chnp, const msgtype_header_t *header,
+                  const void *dp) {
+
+	msg_t ret = RDY_OK;
+	float p;
+	(void)dp;
+
+	BaseSequentialStream *chp = (BaseSequentialStream *)chnp;
+
+	switch (header->type) {
+
+	// human-testable commands
+
+	case MSGTYPE_PING:
+		chprintf(chp, "%c\r\n", MSGTYPE_PONG);
+		break;
+	case MSGTYPE_TEST:
+		chprintf(chp, "Hello World!\r\n");
+		break;
+	case MSGTYPE_VALUE:
+		p = motorCGet();
+		chprintf(chp, "%d.%03d\r\n", (int)(p),
+		         (int)(1000 * fmod(copysign(p, 1.0), 1.0)));
+		break;
+
+	// computer commands
+
+	case MSGTYPE_SETPID:
+	case MSGTYPE_SETPOINT:
+		break;
+
+	// invalid commands
+
+	default:
+		return RDY_RESET;
+	}
+
+	return ret;
 }

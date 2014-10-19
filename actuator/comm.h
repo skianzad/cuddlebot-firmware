@@ -22,47 +22,36 @@ Vancouver, B.C. V6T 1Z4 Canada
 
 /*
 
-Start the RS-485 driver.
-
-This function listens for requests from the master and services them
-synchronously. Batched commands sent on the bus are serviced as they
-arrive. The master must ensure that at most one message requiring a
-response be sent per batch, and that this message be the last sent.
-
-@param sdp The serial driver
-
-*/
-void commStart(RS485Driver *sdp);
-
-/*
-
-Stop the RS-485 driver.
-
-@param sdp The serial driver
-
-*/
-void commStop(RS485Driver *sdp);
-
-/*
-
-Restart the RS-485 driver.
-
-@param sdp The serial driver
-
-*/
-void commRestart(RS485Driver *sdp);
-
-/*
-
 Receive master commands, ignoring messages not addressed to self.
 
-@param sdp The serial driver
+@param chnp The comm channel
 @param header Pointer to header struct to save header data
 @param buf Buffer for data, should be at least 1KB
 @param len Buffer size
 
 */
-msg_t commReceive(RS485Driver *sdp, msgtype_header_t *header,
-  char *buf, size_t len);
+msg_t commReceive(BaseChannel *chnp, msgtype_header_t *header,
+                  char *buf, size_t len);
+
+/*
+
+Service messages from master.
+
+The following human-testable commands are implemented:
+
+  ?   ping: the actuator transmits a "."
+  t   test: the actuator runs local tests and prints the results
+  v   value: the actuator prints the value of the position sensor
+
+The commands, when not addressed via an envelope, will only work with
+one actuator connected to the RS-485 bus.
+
+@param chnp The comm channel
+@param header The message header
+@param dp The message data buffer
+
+*/
+msg_t commService(BaseChannel *chnp, const msgtype_header_t *header,
+                  const void *dp);
 
 #endif // _COMM_H_
