@@ -11,7 +11,6 @@ Vancouver, B.C. V6T 1Z4 Canada
 
 #include <ch.h>
 #include <hal.h>
-#include <chprintf.h>
 
 #include "rs485.h"
 
@@ -176,8 +175,10 @@ void rs485ObjectInit(RS485Driver *rsp, UARTDriver *uart) {
 void rs485Start(RS485Driver *rsp) {
 	// start UART driver
 	uartStart(rsp->uart, &uartcfg);
-	// disable transmission
+	// disable transmitter
 	rsp->uart->usart->CR1 &= ~USART_CR1_TE;
+	// read and ignore anomalous '\0'
+	get(rsp);
 }
 
 void rs485Stop(RS485Driver *rsp) {
