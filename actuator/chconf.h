@@ -324,7 +324,7 @@
  * @note    The default is @p TRUE.
  */
 #if !defined(CH_USE_MEMPOOLS) || defined(__DOXYGEN__)
-#define CH_USE_MEMPOOLS                 FALSE
+#define CH_USE_MEMPOOLS                 TRUE
 #endif
 
 /**

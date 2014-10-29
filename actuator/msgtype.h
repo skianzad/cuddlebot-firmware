@@ -33,6 +33,9 @@ Vancouver, B.C. V6T 1Z4 Canada
 #define MSGTYPE_TEST                    't' // run internal tests
 #define MSGTYPE_VALUE                   'v' // get position value
 
+/* Setpoint loop special values. */
+#define MSGTYPE_LOOP_INFINITE           0xffff
+
 #pragma pack(push, 1)  /* set alignment to 1 byte boundary */
 
 /* Message header. */

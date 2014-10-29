@@ -33,19 +33,10 @@ limitations under the License.
 
 #include "addr.h"
 #include "comm.h"
+#include "motion.h"
 #include "motor.h"
 #include "pid.h"
 #include "rs485.h"
-#include "state.h"
-
-/* PID configuration. */
-const PIDConfig pidcfg = {
-	.kp = 127.0 / M_PI,
-	.ki = 1.0,
-	.kd = -1.0,
-	.setpoint = 2.5,
-	.frequency = 1000
-};
 
 /* Application entry point. */
 int main(void) {
@@ -77,10 +68,6 @@ int main(void) {
 	rs485Init();
 	rs485Start(&RSD3);
 
-	// start PID driver
-	PIDDriver PID1;
-	pidInit(&PID1, &pidcfg);
-
 	// typed channels
 	BaseChannel *chnp = (BaseChannel *)&RSD3;
 	BaseSequentialStream *chp = (BaseSequentialStream *)&RSD3;
@@ -100,8 +87,7 @@ int main(void) {
 		// handle computer commands
 		if (
 		  commReceive(chnp, &header, buf, sizeof(buf)) < RDY_OK ||
-		  commService(chnp, &header, buf) < RDY_OK ||
-		  stateUpdate(&header, buf) < RDY_OK
+		  commService(chnp, &header, buf) < RDY_OK
 		) {
 		 palTogglePad(GPIOB, GPIOB_LED1);
 		} else {

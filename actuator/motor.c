@@ -146,6 +146,12 @@ void motorCalibrate(void) {
 }
 
 void motorSet(int8_t p) {
+	chSysLock();
+	motorSetI(p);
+	chSysUnlock();
+}
+
+void motorSetI(int8_t p) {
 	// input is restricted to [-128, 127] by data type
 	if (p == -128) {
 		p = -127;
@@ -176,15 +182,15 @@ void motorSet(int8_t p) {
 
 		// update forces
 		if (p > 0) {
-			pwmEnableChannel(&PWMD1, 0, MD1.pwmoffset + p);
+			pwmEnableChannelI(&PWMD1, 0, MD1.pwmoffset + p);
 			if (newdir) {
-				pwmDisableChannel(&PWMD1, 1);
+				pwmDisableChannelI(&PWMD1, 1);
 			}
 		} else {
 			if (newdir) {
-				pwmDisableChannel(&PWMD1, 0);
+				pwmDisableChannelI(&PWMD1, 0);
 			}
-			pwmEnableChannel(&PWMD1, 1, MD1.pwmoffset - p);
+			pwmEnableChannelI(&PWMD1, 1, MD1.pwmoffset - p);
 		}
 	}
 

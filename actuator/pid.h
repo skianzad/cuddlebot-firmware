@@ -12,6 +12,8 @@ Vancouver, B.C. V6T 1Z4 Canada
 #ifndef _PID_H_
 #define _PID_H_
 
+#include <math.h>
+
 #include <ch.h>
 #include <hal.h>
 
@@ -27,7 +29,6 @@ typedef struct {
 	// private: internal state
 	float lasterr;
 	float integrator;
-  Mutex lock;
 } PIDDriver;
 
 /* PID configuration. */
@@ -39,15 +40,27 @@ typedef struct {
 	float frequency;                      // Frequency of updates, in Hz
 } PIDConfig;
 
+/* Default PID configuration. */
+extern PIDConfig DefaultPIDConfig;
+
 /*
 
 Initialize PID driver.
 
 @param pid The PID driver
+
+*/
+void pidObjectInit(PIDDriver *pid);
+
+/*
+
+Start the PID driver.
+
+@param pid The PID driver
 @param config The PID driver configuration
 
 */
-void pidInit(PIDDriver *pid, const PIDConfig *config);
+void pidStart(PIDDriver *pid, const PIDConfig *config);
 
 /*
 
@@ -57,7 +70,7 @@ Change the PID coefficients.
 @param config The PID driver configuration for kp, ki, and kd
 
 */
-void pidCoeff(PIDDriver *pid, const PIDConfig *config);
+void pidSetCoeff(PIDDriver *pid, const PIDConfig *config);
 
 /*
 
@@ -68,7 +81,7 @@ Set PID setpoint, limiting the maximum change in value to 1 deg.
 @return Actual setpoint value accepted
 
 */
-float pidSet(PIDDriver *pid, float setpoint);
+float pidSetpoint(PIDDriver *pid, float setpoint);
 
 /*
 

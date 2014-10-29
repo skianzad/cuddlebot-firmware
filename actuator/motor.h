@@ -48,6 +48,15 @@ Set motor output.
 */
 void motorSet(int8_t p);
 
+/*
+
+Set motor output in interrupt handler.
+
+@param p integer between -127 and 127
+
+*/
+void motorSetI(int8_t p);
+
 /* Get motor mosition, in radians between [-π, π]. */
 float motorGet(void);
 

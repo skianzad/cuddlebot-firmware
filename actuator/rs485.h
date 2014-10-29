@@ -21,7 +21,7 @@ Low level RS-485 driver implementation. Not thread safe.
 #include <ch.h>
 #include <hal.h>
 
-/* */
+/* RS-485 driver structure. */
 typedef struct {
   const struct BaseAsynchronousChannelVMT *vmt;
   _base_asynchronous_channel_data
@@ -35,7 +35,7 @@ typedef struct {
   size_t i;
 } RS485Driver;
 
-/* */
+/* RS-485 driver associated with USART3. */
 extern RS485Driver RSD3;
 
 /* Initialize the low level RS-485 driver. */

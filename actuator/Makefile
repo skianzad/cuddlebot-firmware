@@ -94,10 +94,10 @@ CSRC = $(PORTSRC) \
        addr.c \
        comm.c \
        crc32.c \
+       motion.c \
        motor.c \
        pid.c \
        rs485.c \
-       state.c \
        \
        main.c
 
