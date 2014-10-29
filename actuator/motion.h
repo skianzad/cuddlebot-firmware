@@ -70,8 +70,16 @@ typedef struct {
 
 extern MotionDriver MOTION2;
 
+/* Initialize the motion driver. */
 void motionInit(void);
 
+/*
+
+Initialize a motion driver object.
+
+@param mdp The motion driver
+
+*/
 void motionObjectInit(MotionDriver *mdp);
 
 /*

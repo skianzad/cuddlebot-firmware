@@ -38,6 +38,19 @@ limitations under the License.
 #include "pid.h"
 #include "rs485.h"
 
+#define SETPOINT_BUF_SIZE               1024
+#define SETPOINT_BUF_COUNT              8
+
+static uint8_t sp_memory_buf[SETPOINT_BUF_COUNT *SETPOINT_BUF_SIZE];
+static msg_t sp_mailbox_buf[SETPOINT_BUF_COUNT];
+static MEMORYPOOL_DECL(sp_memory_pool, SETPOINT_BUF_SIZE, NULL);
+static MAILBOX_DECL(sp_mailbox, sp_mailbox_buf, SETPOINT_BUF_COUNT);
+static WORKING_AREA(sp_thread_wa, 128);
+
+MotionConfig motioncfg = {
+	&sp_memory_pool, &sp_mailbox, sp_thread_wa, 128, HIGHPRIO
+};
+
 /* Application entry point. */
 int main(void) {
 	// initialize the system
@@ -64,6 +77,13 @@ int main(void) {
 	motorStart();
 	motorCalibrate();
 
+	// initialize setpoint buffers
+	chPoolLoadArray(&sp_memory_pool, sp_memory_buf, SETPOINT_BUF_COUNT);
+
+	// start motion driver
+	motionInit();
+	motionStart(&MOTION2, &motioncfg);
+
 	// start serial driver
 	rs485Init();
 	rs485Start(&RSD3);
@@ -89,9 +109,9 @@ int main(void) {
 		  commReceive(chnp, &header, buf, sizeof(buf)) < RDY_OK ||
 		  commService(chnp, &header, buf) < RDY_OK
 		) {
-		 palTogglePad(GPIOB, GPIOB_LED1);
+			palTogglePad(GPIOB, GPIOB_LED1);
 		} else {
-		 palTogglePad(GPIOB, GPIOB_LED0);
+			palTogglePad(GPIOB, GPIOB_LED0);
 		}
 
 		/*
