@@ -45,21 +45,21 @@ msg_t commReceive(BaseChannel *chnp, msgtype_header_t *header,
 			return RDY_OK;
 		}
 
-		// read message type and message size
-		uint8_t *bp = ((uint8_t *)&header->type);
-		size_t n = chnReadTimeout(chnp, bp,
-		                          sizeof(*header) - sizeof(header->addr),
-		                          MS2ST(10));
+		// read rest of header
+		uint8_t *bp = &header->type;
+		const size_t readlen = sizeof(*header) - sizeof(header->addr);
+		size_t n = chnReadTimeout(chnp, bp, readlen, MS2ST(10));
 
 		// check header and buffer should be large enough to hold data
-		if (n != sizeof(*header) || header->size > len) {
+		if (n != readlen || header->size > len) {
 			return RDY_RESET;
 		}
 
 		if (header->size) {
 			// read with a timeout long enough to accept all data, plus 10ms slack
-			ret = chnReadTimeout(chnp, (uint8_t *)buf, header->size,
-			                     MS2ST((len * 1000 / 11520) + 11));
+			const systime_t timeout =
+			  MS2ST((len * 1000 / SERIAL_DEFAULT_BITRATE / 10) + 11);
+			ret = chnReadTimeout(chnp, (uint8_t *)buf, header->size, timeout);
 			if (ret < RDY_OK) {
 				return ret;
 			}
@@ -73,17 +73,20 @@ msg_t commReceive(BaseChannel *chnp, msgtype_header_t *header,
 			return ret;
 		}
 
-		rs485Wait((RS485Driver *)chnp);
-		chprintf(chp, "\1\2\0\0");
-
 		// ignore messages not addressed to self
 		if (!addrIsSelf(header->addr)) {
 			continue;
 		}
 
+		// calculate checksum
+		// NOTE: Do NOT use CRC calculation unit elsewhere!
+		crcReset();
+		crcUpdateN((uint8_t *)header, sizeof(*header));
+		crcUpdateN((uint8_t *)buf, header->size);
+		uint16_t crc16 = crcValue();
+
 		// verify checksum
-		uint16_t checksum = crc32(buf, header->size);
-		if (checksum != footer.crc16) {
+		if (crc16 != footer.crc16) {
 			return RDY_RESET;
 		}
 

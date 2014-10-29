@@ -14,25 +14,9 @@ Vancouver, B.C. V6T 1Z4 Canada
 
 #include "crc32.h"
 
-/*
-
-Calculate a CRC-32 checksum.
-
-@param buf The data buffer
-@param len The length of the data
-
-*/
-uint32_t crc32(const char *buf, const size_t len) {
-  size_t i;
-
-  // reset CRC-32 unit
-  CRC->CR = 1;
-
-  // update CRC-32 calculation per byte
-  for (i = 0; i < len; i++) {
-    CRC->DR = buf[i];
-  }
-
-  // return hardware-calculated value
-  return CRC->DR;
+void crcUpdateN(const uint8_t *buf, const size_t n) {
+	size_t i = 0;
+	for (i = 0; i < n; i++) {
+		crcUpdate(buf[i]);
+	}
 }
