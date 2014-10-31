@@ -18,9 +18,9 @@ Vancouver, B.C. V6T 1Z4 Canada
 #include "pid.h"
 
 PIDConfig DefaultPIDConfig = {
-	.kp = 127.0 / M_PI,
-	.ki = 1.0,
-	.kd = -1.0,
+	.kp = 10.0,
+	.ki = 0.01,
+	.kd = 1.0,
 	.setpoint = 2.5,
 	.frequency = 1000
 };
@@ -38,11 +38,7 @@ void pidObjectInit(PIDDriver *pid) {
 }
 
 void pidStart(PIDDriver *pid, const PIDConfig *config) {
-	// set coefficients
-	pid->kp = config->kp;
-	pid->ki = config->ki / config->frequency;
-	pid->kd = config->kd / config->frequency;
-	// set starting setpoint
+	pidSetCoeff(pid, config);
 	pid->setpoint = config->setpoint;
 }
 
@@ -54,10 +50,14 @@ void pidSetCoeff(PIDDriver *pid, const PIDConfig *config) {
 }
 
 float pidSetpoint(PIDDriver *pid, float setpoint) {
+	// edge case: if previous setpoint is infinite
+	if (isinf(pid->setpoint) || isnan(pid->setpoint)) {
+		pid->setpoint = 0.0;
+	}
 	// calculate change
 	float delta = setpoint - pid->setpoint;
 	// constrain delta to [-1 deg, +1 deg]
-	if (fabs(delta) > M_2_PI / 360.0) {
+	if (fabs(delta) > 2 * M_PI / 360.0) {
 		delta = copysign(delta, 1.0);
 		// increment setpoint
 		pid->setpoint += delta;
@@ -72,14 +72,44 @@ float pidSetpoint(PIDDriver *pid, float setpoint) {
 float pidUpdate(PIDDriver *pid, float pos) {
 	// calculate error
 	float error = pid->setpoint - pos;
+
 	// add error to integrator
 	pid->integrator += error;
+
+	// integrator upper bound
+	if (pid->integrator > 127.0) {
+		pid->integrator = 127.0;
+	}
+	// integrator lower bound
+	else if (pid->integrator < -127.0) {
+		pid->integrator = -127.0;
+	}
+	// edge case: if integrator becomes invalid
+	else if (isinf(pid->integrator) || isnan(pid->integrator)) {
+		pid->integrator = 0.0;
+	}
+
 	// calculate output
 	float output = pid->kp * error;
 	output += pid->ki * pid->integrator;
-	output += pid->kd * (error - pid->lasterr);
+	output -= pid->kd * (error - pid->lasterr);
+
 	// save last error
 	pid->lasterr = error;
+
+	// output upper bound
+	if (output > 127.0) {
+		output = 127.0;
+	}
+	// output lower bound
+	else if (output < -127.0) {
+		output = -127.0;
+	}
+	// edge case: if output becomes invalid
+	else if (isinf(output) || isnan(output)) {
+		output = 0.0;
+	}
+
 	// return result
-	return fmod(output, 127.0f);
+	return output;
 }

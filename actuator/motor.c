@@ -216,9 +216,9 @@ float motorGet(void) {
 	float psin = buf[1] - buf[0];
 	float pcos = buf[2] - buf[0];
 	// calculate sine based on 12-bit sampling
-	psin = psin * M_2_PI / 2048.0f;
+	psin = psin * 2 * M_PI / 2048.0f;
 	// calculate sine based on 12-bit sampling
-	pcos = pcos * M_2_PI / 2048.0f;
+	pcos = pcos * 2 * M_PI / 2048.0f;
 	// calculate radians
 	float pos = atan2f(psin, pcos);
 

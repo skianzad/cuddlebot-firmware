@@ -52,10 +52,11 @@ void motion_lld_update_sp(MotionDriver *mdp) {
 	if (mdp->sp != NULL) {
 		msgtype_spvalue_t *spp = &mdp->sp->setpoints[mdp->spindex];
 		mdp->duration = spp->duration;
-		mdp->setpoint = (((float)spp->setpoint) / 65535.0f) * M_2_PI;
-		if (mdp->setpoint > motorHiBound()) {
-			mdp->setpoint = motorHiBound();
+		float setpoint = ((float)spp->setpoint) * (2 * M_PI / 65535.0);
+		if (setpoint > motorHiBound()) {
+			setpoint = motorHiBound();
 		}
+		mdp->setpoint = setpoint;
 	}
 }
 

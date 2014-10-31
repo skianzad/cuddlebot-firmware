@@ -105,7 +105,7 @@ int main(void) {
 
 	// typed channels
 	BaseChannel *chnp = (BaseChannel *)&RSD3;
-	BaseSequentialStream *chp = (BaseSequentialStream *)&RSD3;
+	// BaseSequentialStream *chp = (BaseSequentialStream *)&RSD3;
 
 	palSetPadMode(GPIOB, GPIOB_LED0, PAL_MODE_OUTPUT_PUSHPULL);
 	palSetPadMode(GPIOB, GPIOB_LED1, PAL_MODE_OUTPUT_PUSHPULL);
@@ -114,6 +114,30 @@ int main(void) {
 
 	// ignore anomalous '\0' char
 	chnGetTimeout(chnp, MS2ST(1));
+
+	msgtype_setpoint_t *sb;
+
+	sb = chPoolAlloc(&sp_memory_pool);
+	if (sb != NULL) {
+		sb->delay = 0;
+		sb->loop = MSGTYPE_LOOP_INFINITE;
+		sb->n = 1;
+		sb->setpoints[0].duration = MSGTYPE_LOOP_INFINITE;
+		sb->setpoints[0].setpoint = 15488;
+		chMBPost(&sp_mailbox, (msg_t)sb, TIME_INFINITE);
+	}
+
+	sb = chPoolAlloc(&sp_memory_pool);
+	if (sb != NULL) {
+		sb->delay = 2000;
+		sb->loop = 4;
+		sb->n = 2;
+		sb->setpoints[0].duration = 1000;
+		sb->setpoints[0].setpoint = 1500;
+		sb->setpoints[1].duration = 2000;
+		sb->setpoints[1].setpoint = 10000;
+		chMBPost(&sp_mailbox, (msg_t)sb, TIME_INFINITE);
+	}
 
 	for (;;) {
 
