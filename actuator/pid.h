@@ -12,12 +12,8 @@ Vancouver, B.C. V6T 1Z4 Canada
 #ifndef _PID_H_
 #define _PID_H_
 
-#include <math.h>
-
 #include <ch.h>
 #include <hal.h>
-
-#include "motor.h"
 
 /* PID driver state. */
 typedef struct {

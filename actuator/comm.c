@@ -51,7 +51,7 @@ Receive master commands, ignoring messages not addressed to self.
 
 */
 msg_t comm_lld_receive(CommDriver *comm, msgtype_header_t *header,
-                       uint8_t **buf) {
+                       void **buf) {
 
 	msg_t ret;
 	BaseChannel *chnp = comm->config.io.chnp;
@@ -85,7 +85,11 @@ msg_t comm_lld_receive(CommDriver *comm, msgtype_header_t *header,
 
 		// receive data
 		if (header->size) {
+			// allocate memory
 			*buf = chPoolAlloc(comm->config.pool);
+			if (*buf == NULL) {
+				return RDY_RESET;
+			}
 			// read with a timeout long enough to accept all data, plus 10ms slack
 			const systime_t timeout =
 			  MS2ST((len * 1000 / SERIAL_DEFAULT_BITRATE / 10) + 11);
@@ -156,12 +160,12 @@ one actuator connected to the RS-485 bus.
 */
 msg_t comm_lld_service(CommDriver *comm,
                        const msgtype_header_t *header,
-                       const void *dp) {
+                       void **dp) {
 
-	msg_t ret = RDY_OK;
+	PIDConfig pidcfg = {0, 0, 0, 0, 0};
+	msgtype_setpid_t *coeff = NULL;
 
 	float p;
-	(void)dp;
 
 	BaseSequentialStream *chp = comm->config.io.chp;
 
@@ -184,7 +188,23 @@ msg_t comm_lld_service(CommDriver *comm,
 	// computer commands
 
 	case MSGTYPE_SETPID:
+		if (*dp == NULL) {
+			return RDY_RESET;
+		}
+		coeff = *dp;
+		pidcfg.kp = coeff->kp;
+		pidcfg.ki = coeff->ki;
+		pidcfg.kd = coeff->kd;
+		motionSetCoeff(&MOTION2, &pidcfg);
+		break;
+
 	case MSGTYPE_SETPOINT:
+		if (*dp == NULL) {
+			return RDY_RESET;
+		}
+		if (chMBPost(comm->config.mbox, (msg_t)*dp, TIME_IMMEDIATE) == RDY_OK) {
+			*dp = NULL;
+		}
 		break;
 
 	// invalid commands
@@ -193,17 +213,17 @@ msg_t comm_lld_service(CommDriver *comm,
 		return RDY_RESET;
 	}
 
-	return ret;
+	return RDY_OK;
 }
 
 msg_t commHandle(CommDriver *comm) {
 	msgtype_header_t header;
-	uint8_t *buf = NULL;
+	void *buf = NULL;
 	msg_t ret = RDY_OK;
 
 	ret = comm_lld_receive(comm, &header, &buf);
 	if (ret == RDY_OK) {
-		ret = comm_lld_service(comm, &header, buf);
+		ret = comm_lld_service(comm, &header, &buf);
 	}
 
 	if (buf != NULL) {
