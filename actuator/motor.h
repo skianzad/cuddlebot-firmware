@@ -15,11 +15,17 @@ Vancouver, B.C. V6T 1Z4 Canada
 #include <ch.h>
 #include <hal.h>
 
+/* Motor flag to reverse direction. */
+#define MOTOR_REVERSE         0x01
+
+/* Motor flag to flip axis. */
+#define MOTOR_FLIP_AXIS       0x02
+
 /* Motor driver state. */
 typedef struct {
   pwmcnt_t pwmoffset;                   // minimum PWM to move motor
   int8_t pwmstate;                      // last PWM value
-  int8_t dir;                           // motor direction
+  int8_t flags;                         // motor flags
   float lobound;                        // lower bound on position
   float hibound;                        // upper bound on position
 } MotorDriver;
@@ -35,6 +41,15 @@ extern MotorDriver MD1;
 
 /* Initialize motor driver. */
 void motorInit(void);
+
+/*
+
+Initialize motor driver object.
+
+@param mdp Motor driver
+
+*/
+void motorObjectInit(MotorDriver *mdp);
 
 /* Start motor driver. */
 void motorStart(void);

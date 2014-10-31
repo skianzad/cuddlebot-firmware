@@ -90,18 +90,29 @@ void motorInit(void) {
 		pwmcfg.frequency = 207 * 202898;    //  42.0 MHz; divider = 2
 		pwmcfg.period = 207;                // 137.3 KHz
 	}
+	motorObjectInit(&MD1);
+}
 
+void motorObjectInit(MotorDriver *mdp) {
 	// reset state
-	MD1.pwmoffset = pwmcfg.period - 127;
-	MD1.pwmstate = 0;
+	mdp->pwmoffset = pwmcfg.period - 127;
+	mdp->pwmstate = 0;
+	mdp->flags = 0;
 
 	// set motor direction based on position on board
 	switch (addrGet()) {
 	case ADDR_SPINE:
-		MD1.dir = -1;
+		mdp->flags |= MOTOR_REVERSE;
 		break;
-	default:
-		MD1.dir = 1;
+	}
+
+	// flip axis when sensor is mounted upside-down relative to arm
+	switch (addrGet()) {
+	case ADDR_RIBS:
+	case ADDR_SPINE:
+	case ADDR_HEAD_PITCH:
+		mdp->flags |= MOTOR_FLIP_AXIS;
+		break;
 	}
 }
 
@@ -158,7 +169,7 @@ void motorSetI(int8_t p) {
 	}
 
 	// set direction
-	if (MD1.dir < 0) {
+	if ((MD1.flags & MOTOR_REVERSE) != 0) {
 		p = -p;
 	}
 
@@ -222,19 +233,12 @@ float motorGet(void) {
 	// calculate radians
 	float pos = atan2f(psin, pcos);
 
-	// flip axis when sensor is mounted upside-down relative to arm
-	switch (addrGet()) {
-	case ADDR_RIBS:
-	case ADDR_SPINE:
-	case ADDR_HEAD_PITCH:
+	if ((MD1.flags & MOTOR_FLIP_AXIS) != 0) {
 		if (pos < 0) {
 			pos = -M_PI - pos;
 		} else {
 			pos = M_PI - pos;
 		}
-		break;
-	default:
-		break;
 	}
 
 	return pos;
