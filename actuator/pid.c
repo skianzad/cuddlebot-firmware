@@ -58,7 +58,7 @@ float pidSetpoint(PIDDriver *pid, float setpoint) {
 	float delta = setpoint - pid->setpoint;
 	// constrain delta to [-1 deg, +1 deg]
 	if (fabs(delta) > M_2_PI / 360.0) {
-		delta = copysign(1.0, delta);
+		delta = copysign(delta, 1.0);
 		// increment setpoint
 		pid->setpoint += delta;
 	} else {
@@ -69,9 +69,9 @@ float pidSetpoint(PIDDriver *pid, float setpoint) {
 	return pid->setpoint;
 }
 
-float pidUpdate(PIDDriver *pid, float value) {
+float pidUpdate(PIDDriver *pid, float pos) {
 	// calculate error
-	float error = value - pid->setpoint;
+	float error = pid->setpoint - pos;
 	// add error to integrator
 	pid->integrator += error;
 	// calculate output
@@ -81,5 +81,5 @@ float pidUpdate(PIDDriver *pid, float value) {
 	// save last error
 	pid->lasterr = error;
 	// return result
-	return -fmod(output, 127.0f);
+	return fmod(output, 127.0f);
 }

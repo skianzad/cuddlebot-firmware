@@ -48,7 +48,18 @@ static MAILBOX_DECL(sp_mailbox, sp_mailbox_buf, SETPOINT_BUF_COUNT);
 static WORKING_AREA(sp_thread_wa, 128);
 
 MotionConfig motioncfg = {
-	&sp_memory_pool, &sp_mailbox, sp_thread_wa, 128, HIGHPRIO
+	.pool = &sp_memory_pool,
+	.mbox = &sp_mailbox,
+	.thread_wa = sp_thread_wa,
+	.thread_wa_size = sizeof(sp_thread_wa),
+	.thread_prio = HIGHPRIO
+};
+
+CommConfig commcfg = {
+	.pool = &sp_memory_pool,
+	.mbox = &sp_mailbox,
+	.object_size = SETPOINT_BUF_SIZE,
+	.io = { .rsdp = &RSD3 }
 };
 
 /* Application entry point. */
@@ -88,6 +99,10 @@ int main(void) {
 	rs485Init();
 	rs485Start(&RSD3);
 
+	// start comm driver
+	commInit();
+	commStart(&COMM1, &commcfg);
+
 	// typed channels
 	BaseChannel *chnp = (BaseChannel *)&RSD3;
 	BaseSequentialStream *chp = (BaseSequentialStream *)&RSD3;
@@ -101,28 +116,23 @@ int main(void) {
 	chnGetTimeout(chnp, MS2ST(1));
 
 	for (;;) {
-		msgtype_header_t header;
-		char buf[1024];
 
 		// handle computer commands
-		if (
-		  commReceive(chnp, &header, buf, sizeof(buf)) < RDY_OK ||
-		  commService(chnp, &header, buf) < RDY_OK
-		) {
+		if (commHandle(&COMM1) < RDY_OK) {
 			palTogglePad(GPIOB, GPIOB_LED1);
 		} else {
 			palTogglePad(GPIOB, GPIOB_LED0);
 		}
 
 		/*
-		    float p = motorCGet();
+		  float p = motorCGet();
 
-		    // for debugging; remember to reduce frequency
-		    // chprintf((BaseSequentialStream *)&SD3, "%d.%03d\r\n",
-		    //          (int)(p),
-		    //          (int)(1000 * fmod(copysign(p, 1.0), 1.0)));
+		  // for debugging; remember to reduce frequency
+		  // chprintf((BaseSequentialStream *)&SD3, "%d.%03d\r\n",
+		  //          (int)(p),
+		  //          (int)(1000 * fmod(copysign(p, 1.0), 1.0)));
 
-		    motorSet(pidUpdate(&PID1, p));
+		  motorSet(pidUpdate(&PID1, p));
 		*/
 	}
 

@@ -20,38 +20,42 @@ Vancouver, B.C. V6T 1Z4 Canada
 #include "msgtype.h"
 #include "rs485.h"
 
-/*
+/* Communication driver states. */
+typedef enum {
+  COMM_UNINIT = 0,
+  COMM_STOP = 1,
+  COMM_READY = 2
+} commstate_t;
 
-Receive master commands, ignoring messages not addressed to self.
+/* Communication I/O types. */
+typedef union {
+  BaseChannel *chnp;
+  BaseSequentialStream *chp;
+  RS485Driver *rsdp;
+} commio_t;
 
-@param chnp The comm channel
-@param header Pointer to header struct to save header data
-@param buf Buffer for data, should be at least 1KB
-@param len Buffer size
+/* Communication driver configuration. */
+typedef struct {
+  MemoryPool *pool;                     // setpoint memory pool
+  Mailbox *mbox;                        // setpoint mailbox
+  size_t object_size;                   // setpoint object size
+  commio_t io;                          // I/O accessors
+} CommConfig;
 
-*/
-msg_t commReceive(BaseChannel *chnp, msgtype_header_t *header,
-                  char *buf, size_t len);
+/* Communication driver structure. */
+typedef struct {
+  commstate_t state;                    // driver state
+  CommConfig config;                    // configuration
+} CommDriver;
 
-/*
+extern CommDriver COMM1;
 
-Service messages from master.
+void commInit(void);
 
-The following human-testable commands are implemented:
+void commObjectInit(CommDriver *comm);
 
-  ?   ping: the actuator transmits a "."
-  t   test: the actuator runs local tests and prints the results
-  v   value: the actuator prints the value of the position sensor
+void commStart(CommDriver *comm, CommConfig *config);
 
-The commands, when not addressed via an envelope, will only work with
-one actuator connected to the RS-485 bus.
-
-@param chnp The comm channel
-@param header The message header
-@param dp The message data buffer
-
-*/
-msg_t commService(BaseChannel *chnp, const msgtype_header_t *header,
-                  const void *dp);
+msg_t commHandle(CommDriver *comm);
 
 #endif // _COMM_H_

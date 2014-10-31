@@ -88,10 +88,10 @@ float pidSetpoint(PIDDriver *pid, float setpoint);
 Update PID for position value.
 
 @param pid The PID driver
-@param value The position value
-@return Motor PWM value
+@param pos The position value
+@return Motor PWM
 
 */
-float pidUpdate(PIDDriver *pid, float value);
+float pidUpdate(PIDDriver *pid, float pos);
 
 #endif // _PID_H_

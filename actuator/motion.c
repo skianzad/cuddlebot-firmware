@@ -19,6 +19,9 @@ Vancouver, B.C. V6T 1Z4 Canada
 #include "motor.h"
 #include "pid.h"
 
+#include <chprintf.h>
+#include "rs485.h"
+
 MotionDriver MOTION2;
 
 /* General Purpose Timer callback. */
@@ -32,7 +35,7 @@ void gpt_callback(GPTDriver *gptp) {
 
 /* General Purpose Timer configuration for 1 Khz. */
 const GPTConfig gptcfg = {
-	.frequency = 1000,
+	.frequency = 10000,
 	.callback = gpt_callback,
 	// hardware-specfic configuration
 	.dier = 0
@@ -40,8 +43,19 @@ const GPTConfig gptcfg = {
 
 void motion_lld_free_sp(MotionDriver *mdp) {
 	if (mdp->sp != NULL) {
-		chPoolFreeI(mdp->config->pool, mdp->sp);
+		chPoolFreeI(mdp->config.pool, mdp->sp);
 		mdp->sp = NULL;
+	}
+}
+
+void motion_lld_update_sp(MotionDriver *mdp) {
+	if (mdp->sp != NULL) {
+		msgtype_spvalue_t *spp = &mdp->sp->setpoints[mdp->spindex];
+		mdp->duration = spp->duration;
+		mdp->setpoint = (((float)spp->setpoint) / 65535.0f) * M_2_PI;
+		if (mdp->setpoint > motorHiBound()) {
+			mdp->setpoint = motorHiBound();
+		}
 	}
 }
 
@@ -59,13 +73,15 @@ msg_t driver_thread(void *p) {
 		// ENTER CRITICAL SECTION
 		chSysLock();
 
-		// save new position
-		mdp->pos = pos;
+		// save new position if moved more the noise
+		if (fabs(mdp->pos - pos) > 0.01f) {
+			mdp->pos = pos;
+		}
 
 		// get next setpoints
 		msg_t ptr = 0;
 		if (mdp->nextsp == NULL &&
-		    chMBFetchI(mdp->config->mbox, &ptr) == RDY_OK) {
+		    chMBFetchI(mdp->config.mbox, &ptr) == RDY_OK) {
 			// new setpoints available
 			mdp->nextsp = (msgtype_setpoint_t *)ptr;
 			mdp->delay = mdp->nextsp->delay;
@@ -74,22 +90,17 @@ msg_t driver_thread(void *p) {
 		// check delay for next setpoints
 		if (mdp->nextsp != NULL) {
 			if (mdp->delay > 0) {
-				mdp->nextsp->delay--;
+				mdp->delay--;
 			} else {
 				motion_lld_free_sp(mdp);
 				mdp->sp = mdp->nextsp;
 				mdp->nextsp = NULL;
 
-				// reset state for new setpoints
+				// reset state for new setpoint
 				mdp->loop = mdp->sp->loop;
 				mdp->spindex = 0;
-				mdp->duration = mdp->sp->setpoints[0].duration;
+				motion_lld_update_sp(mdp);
 			}
-		}
-
-		// free setpoints if empty
-		if (mdp->sp->n == 0) {
-			motion_lld_free_sp(mdp);
 		}
 
 		// disable motor if there are no setpoints
@@ -97,6 +108,11 @@ msg_t driver_thread(void *p) {
 			motorSetI(0);
 			chSysUnlock();
 			continue;
+		}
+
+		// free setpoints if empty
+		if (mdp->sp->n == 0) {
+			motion_lld_free_sp(mdp);
 		}
 
 		// check iteration count
@@ -111,12 +127,12 @@ msg_t driver_thread(void *p) {
 			continue;
 		}
 
-		// retrieve next setpoint
-		msgtype_spvalue_t *spp = &mdp->sp->setpoints[mdp->spindex];
-		float setpoint = ((float)spp->setpoint) * M_2_PI / 65535.0f;
-
 		// update setpoint
-		pidSetpoint(&mdp->pid, setpoint);
+		pidSetpoint(&mdp->pid, mdp->setpoint);
+		// update PID state
+		int8_t pwm = pidUpdate(&mdp->pid, mdp->pos);
+		// set motor output
+		motorSetI(pwm);
 
 		// decrement duration if greater than zero, otherwise interpret as
 		// duration of 1ms
@@ -126,24 +142,23 @@ msg_t driver_thread(void *p) {
 
 		// move to next setpoint when duration reached
 		if (mdp->duration == 0) {
+
 			// duration has ended for this setpoint
 			mdp->spindex++;
+
+			// if all setpoints have been rendered, start over
 			if (mdp->spindex >= mdp->sp->n) {
-				// all setpoints have been rendered, loop to beginning
+				// decrement loop count unless infinite
 				if (mdp->loop != MSGTYPE_LOOP_INFINITE) {
 					mdp->loop--;
 				}
+				// reset index
 				mdp->spindex = 0;
 			}
-			// set duration for next setpoint
-			mdp->duration = mdp->sp->setpoints[mdp->spindex].duration;
+
+			// update state for next setpoint
+			motion_lld_update_sp(mdp);
 		}
-
-		// update PID state
-		int8_t pwm = pidUpdate(&mdp->pid, mdp->pos);
-
-		// set motor output
-		motorSetI(pwm);
 
 		// EXIT CRITICAL SECTION
 		chSysUnlock();
@@ -161,31 +176,31 @@ void motionInit(void) {
 void motionObjectInit(MotionDriver *mdp) {
 	chBSemInit(&mdp->ready, FALSE);
 	mdp->state = MOTION_STOP;
-	mdp->config = NULL;
 	mdp->sp = NULL;
 	mdp->nextsp = NULL;
 	mdp->spindex = 0;
 	mdp->loop = 0;
 	mdp->pos = 0.0f;
+	mdp->setpoint = 0.0f;
 }
 
 void motionStart(MotionDriver *mdp, MotionConfig *mdcfg) {
 	if (mdp->state == MOTION_STOP) {
-		mdp->config = mdcfg;
+		mdp->config = *mdcfg;
 
 		// start PID driver
 		pidStart(&mdp->pid, &DefaultPIDConfig);
 
 		// start rendering thread
 		mdp->thread_tp = chThdCreateStatic(
-		                   mdp->config->thread_wa,
-		                   mdp->config->thread_wa_size,
-		                   mdp->config->thread_prio,
+		                   mdp->config.thread_wa,
+		                   mdp->config.thread_wa_size,
+		                   mdp->config.thread_prio,
 		                   driver_thread, mdp);
 
 		// start timer
 		gptStart(mdp->gptp, &gptcfg);
-		gptStartContinuous(mdp->gptp, 1);
+		gptStartContinuous(mdp->gptp, 10);
 	}
 
 	mdp->state = MOTION_READY;
@@ -207,7 +222,7 @@ void motionStop(MotionDriver *mdp) {
 
 		// free buffer
 		if (mdp->sp) {
-			chPoolFree(mdp->config->pool, mdp->sp);
+			chPoolFree(mdp->config.pool, mdp->sp);
 		}
 
 		// reset state
@@ -230,7 +245,7 @@ msg_t motionSetpoint(MotionDriver *mdp, msgtype_setpoint_t *sp) {
 	if (mdp->state == MOTION_READY) {
 		return RDY_RESET;
 	}
-	return chMBPost(mdp->config->mbox, (msg_t)sp, TIME_IMMEDIATE);
+	return chMBPost(mdp->config.mbox, (msg_t)sp, TIME_IMMEDIATE);
 }
 
 float motionGetPosition(MotionDriver *mdp) {

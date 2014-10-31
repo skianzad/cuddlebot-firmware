@@ -30,8 +30,8 @@ typedef enum {
 typedef struct {
 
   /* Setpoint buffer messaging. */
-  MemoryPool *pool;
-  Mailbox *mbox;
+  MemoryPool *pool;                     // setpoint memory pool
+  Mailbox *mbox;                        // setpoint mailbox
 
   /* Driver thread configuration. */
   void *thread_wa;                      // Thread working area.
@@ -42,12 +42,13 @@ typedef struct {
 
 /* Motion driver structure. */
 typedef struct {
+
   /* Driver state. */
   motionstate_t state;                  // driver state
   BinarySemaphore ready;                // signal from GPT
 
   /* Configuration. */
-  MotionConfig *config;                 // motion driver configuration
+  MotionConfig config;                  // motion driver configuration
 
   /* Setpoint buffers. */
   msgtype_setpoint_t *sp;               // current setpoints
@@ -58,6 +59,7 @@ typedef struct {
   uint16_t duration;                    // duration for current setpoint
   size_t spindex;                       // setpoint offset
   float pos;                            // last read position
+  float setpoint;                       // current setpoint
 
   /* Driver handles. */
   GPTDriver *gptp;                      // GPT driver

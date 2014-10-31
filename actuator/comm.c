@@ -20,15 +20,43 @@ Vancouver, B.C. V6T 1Z4 Canada
 #include "comm.h"
 #include "crc32.h"
 #include "motor.h"
+#include "motion.h"
 #include "msgtype.h"
 #include "rs485.h"
 
-msg_t commReceive(BaseChannel *chnp, msgtype_header_t *header,
-                  char *buf, size_t len) {
+CommDriver COMM1;
+
+void commInit(void) {
+	commObjectInit(&COMM1);
+}
+
+void commObjectInit(CommDriver *comm) {
+	comm->state = COMM_STOP;
+}
+
+void commStart(CommDriver *comm, CommConfig *config) {
+	if (comm->state == COMM_STOP) {
+		comm->config = *config;
+	}
+	comm->state = COMM_READY;
+}
+
+/*
+
+Receive master commands, ignoring messages not addressed to self.
+
+@param chnp The comm channel
+@param header Pointer to header struct to save header data
+@param buf Buffer for data, should be at least 1KB
+
+*/
+msg_t comm_lld_receive(CommDriver *comm, msgtype_header_t *header,
+                       uint8_t **buf) {
 
 	msg_t ret;
-
-	BaseSequentialStream *chp = (BaseSequentialStream *)chnp;
+	BaseChannel *chnp = comm->config.io.chnp;
+	const size_t len = comm->config.object_size;
+	*buf = NULL;
 
 	for (;;) {
 
@@ -52,16 +80,18 @@ msg_t commReceive(BaseChannel *chnp, msgtype_header_t *header,
 
 		// check header and buffer should be large enough to hold data
 		if (n != readlen || header->size > len) {
-			return RDY_RESET;
+			goto error;
 		}
 
+		// receive data
 		if (header->size) {
+			*buf = chPoolAlloc(comm->config.pool);
 			// read with a timeout long enough to accept all data, plus 10ms slack
 			const systime_t timeout =
 			  MS2ST((len * 1000 / SERIAL_DEFAULT_BITRATE / 10) + 11);
-			ret = chnReadTimeout(chnp, (uint8_t *)buf, header->size, timeout);
+			ret = chnReadTimeout(chnp, *buf, header->size, timeout);
 			if (ret < RDY_OK) {
-				return ret;
+				goto error;
 			}
 		}
 
@@ -70,7 +100,7 @@ msg_t commReceive(BaseChannel *chnp, msgtype_header_t *header,
 		ret = chnReadTimeout(chnp, (uint8_t *)&footer,
 		                     sizeof(msgtype_footer_t), MS2ST(10));
 		if (ret < RDY_OK) {
-			return ret;
+			goto error;
 		}
 
 		// ignore messages not addressed to self
@@ -82,12 +112,14 @@ msg_t commReceive(BaseChannel *chnp, msgtype_header_t *header,
 		// NOTE: Do NOT use CRC calculation unit elsewhere!
 		crcReset();
 		crcUpdateN((uint8_t *)header, sizeof(*header));
-		crcUpdateN((uint8_t *)buf, header->size);
+		if (*buf != NULL) {
+			crcUpdateN(*buf, header->size);
+		}
 		uint16_t crc16 = crcValue();
 
 		// verify checksum
 		if (crc16 != footer.crc16) {
-			return RDY_RESET;
+			goto error;
 		}
 
 		// all ok
@@ -95,16 +127,43 @@ msg_t commReceive(BaseChannel *chnp, msgtype_header_t *header,
 	}
 
 	return RDY_OK;
+
+error:
+	if (*buf != NULL) {
+		chPoolFree(comm->config.pool, *buf);
+		*buf = NULL;
+	}
+	return RDY_RESET;
 }
 
-msg_t commService(BaseChannel *chnp, const msgtype_header_t *header,
-                  const void *dp) {
+/*
+
+Service messages from master.
+
+The following human-testable commands are implemented:
+
+  ?   ping: the actuator transmits a "."
+  t   test: the actuator runs local tests and prints the results
+  v   value: the actuator prints the value of the position sensor
+
+The commands, when not addressed via an envelope, will only work with
+one actuator connected to the RS-485 bus.
+
+@param chnp The comm channel
+@param header The message header
+@param dp The message data buffer
+
+*/
+msg_t comm_lld_service(CommDriver *comm,
+                       const msgtype_header_t *header,
+                       const void *dp) {
 
 	msg_t ret = RDY_OK;
+
 	float p;
 	(void)dp;
 
-	BaseSequentialStream *chp = (BaseSequentialStream *)chnp;
+	BaseSequentialStream *chp = comm->config.io.chp;
 
 	switch (header->type) {
 
@@ -117,7 +176,7 @@ msg_t commService(BaseChannel *chnp, const msgtype_header_t *header,
 		chprintf(chp, "Hello World!\r\n");
 		break;
 	case MSGTYPE_VALUE:
-		p = motorCGet();
+		p = motionGetPosition(&MOTION2);
 		chprintf(chp, "%d.%03d\r\n", (int)(p),
 		         (int)(1000 * fmod(copysign(p, 1.0), 1.0)));
 		break;
@@ -132,6 +191,23 @@ msg_t commService(BaseChannel *chnp, const msgtype_header_t *header,
 
 	default:
 		return RDY_RESET;
+	}
+
+	return ret;
+}
+
+msg_t commHandle(CommDriver *comm) {
+	msgtype_header_t header;
+	uint8_t *buf = NULL;
+	msg_t ret = RDY_OK;
+
+	ret = comm_lld_receive(comm, &header, &buf);
+	if (ret == RDY_OK) {
+		ret = comm_lld_service(comm, &header, buf);
+	}
+
+	if (buf != NULL) {
+		chPoolFree(comm->config.pool, buf);
 	}
 
 	return ret;

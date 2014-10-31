@@ -27,6 +27,12 @@ typedef struct {
 /* Motor driver instance. */
 extern MotorDriver MD1;
 
+/* Get calibrated lower bound. */
+#define motorLoBound() (0)
+
+/* Get calibrated upper bound. */
+#define motorHiBound() (MD1.hibound - MD1.lobound)
+
 /* Initialize motor driver. */
 void motorInit(void);
 
