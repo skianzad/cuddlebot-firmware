@@ -13,11 +13,11 @@ Vancouver, B.C. V6T 1Z4 Canada
 
 #include <ch.h>
 #include <hal.h>
-
 #include <chprintf.h>
 
 #include "addr.h"
 #include "comm.h"
+#include "commtest.h"
 #include "crc32.h"
 #include "motor.h"
 #include "motion.h"
@@ -176,9 +176,11 @@ msg_t comm_lld_service(CommDriver *comm,
 	case MSGTYPE_PING:
 		chprintf(chp, "%c\r\n", MSGTYPE_PONG);
 		break;
+
 	case MSGTYPE_TEST:
-		chprintf(chp, "Hello World!\r\n");
+		commtestAll(comm);
 		break;
+
 	case MSGTYPE_VALUE:
 		p = motionGetPosition(&MOTION2);
 		chprintf(chp, "%d.%03d\r\n", (int)(p),

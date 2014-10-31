@@ -115,49 +115,13 @@ int main(void) {
 	// ignore anomalous '\0' char
 	chnGetTimeout(chnp, MS2ST(1));
 
-	msgtype_setpoint_t *sb;
-
-	sb = chPoolAlloc(&sp_memory_pool);
-	if (sb != NULL) {
-		sb->delay = 0;
-		sb->loop = MSGTYPE_LOOP_INFINITE;
-		sb->n = 1;
-		sb->setpoints[0].duration = MSGTYPE_LOOP_INFINITE;
-		sb->setpoints[0].setpoint = 15488;
-		chMBPost(&sp_mailbox, (msg_t)sb, TIME_INFINITE);
-	}
-
-	sb = chPoolAlloc(&sp_memory_pool);
-	if (sb != NULL) {
-		sb->delay = 2000;
-		sb->loop = 4;
-		sb->n = 2;
-		sb->setpoints[0].duration = 1000;
-		sb->setpoints[0].setpoint = 1500;
-		sb->setpoints[1].duration = 2000;
-		sb->setpoints[1].setpoint = 10000;
-		chMBPost(&sp_mailbox, (msg_t)sb, TIME_INFINITE);
-	}
-
 	for (;;) {
-
-		// handle computer commands
+		// handle commands
 		if (commHandle(&COMM1) < RDY_OK) {
 			palTogglePad(GPIOB, GPIOB_LED1);
 		} else {
 			palTogglePad(GPIOB, GPIOB_LED0);
 		}
-
-		/*
-		  float p = motorCGet();
-
-		  // for debugging; remember to reduce frequency
-		  // chprintf((BaseSequentialStream *)&SD3, "%d.%03d\r\n",
-		  //          (int)(p),
-		  //          (int)(1000 * fmod(copysign(p, 1.0), 1.0)));
-
-		  motorSet(pidUpdate(&PID1, p));
-		*/
 	}
 
 	return 0;
