@@ -181,17 +181,15 @@ void motorSetI(int8_t p) {
 
 		// disable motors
 		palClearPad(GPIOB, GPIOB_MOTOR_EN);
+		pwmDisableChannelI(&PWMD1, 0);
+		pwmDisableChannelI(&PWMD1, 1);
 
 	} else {
-		// start motors
-		if (MD1.pwmstate == 0) {
-			palSetPad(GPIOB, GPIOB_MOTOR_EN);
-		}
 
 		// new direction when signs don't match
 		bool newdir = (MD1.pwmstate == 0) || ((MD1.pwmstate < 0) ^ (p < 0));
 
-		// update forces
+		// update PWM output
 		if (p > 0) {
 			pwmEnableChannelI(&PWMD1, 0, MD1.pwmoffset + p);
 			if (newdir) {
@@ -203,6 +201,12 @@ void motorSetI(int8_t p) {
 			}
 			pwmEnableChannelI(&PWMD1, 1, MD1.pwmoffset - p);
 		}
+
+		// start motors
+		if (MD1.pwmstate == 0) {
+			palSetPad(GPIOB, GPIOB_MOTOR_EN);
+		}
+
 	}
 
 	// update state
