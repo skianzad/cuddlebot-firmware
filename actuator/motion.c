@@ -48,7 +48,14 @@ void motion_lld_free_sp(MotionDriver *mdp) {
 	}
 }
 
-void motion_lld_update_sp(MotionDriver *mdp) {
+void motion_lld_free_sp_if_empty(MotionDriver *mdp) {
+	// free setpoints if empty
+	if (mdp->sp->n == 0) {
+		motion_lld_free_sp(mdp);
+	}
+}
+
+void motion_lld_advance_sp(MotionDriver *mdp) {
 	if (mdp->sp != NULL) {
 		msgtype_spvalue_t *spp = &mdp->sp->setpoints[mdp->spindex];
 		mdp->duration = spp->duration;
@@ -58,6 +65,100 @@ void motion_lld_update_sp(MotionDriver *mdp) {
 		}
 		mdp->setpoint = setpoint;
 	}
+}
+
+void motion_lld_update_position(MotionDriver *mdp, const float pos) {
+	// save new position if moved more the noise
+	if (fabs(mdp->pos - pos) > 0.01f) {
+		mdp->pos = pos;
+	}
+}
+
+void motion_lld_load_nextsp(MotionDriver *mdp) {
+	// get next setpoints
+	msg_t ptr = 0;
+	if (mdp->nextsp == NULL &&
+	    chMBFetchI(mdp->config.mbox, &ptr) == RDY_OK) {
+		// new setpoints available
+		mdp->nextsp = (msgtype_setpoint_t *)ptr;
+		mdp->delay = mdp->nextsp->delay;
+	}
+}
+
+void motion_lld_activate_sp_after_delay(MotionDriver *mdp) {
+	// check delay for next setpoints
+	if (mdp->nextsp != NULL) {
+		if (mdp->delay > 0) {
+			mdp->delay--;
+		} else {
+			motion_lld_free_sp(mdp);
+			mdp->sp = mdp->nextsp;
+			mdp->nextsp = NULL;
+
+			// reset state for new setpoint
+			mdp->loop = mdp->sp->loop;
+			mdp->spindex = 0;
+			motion_lld_advance_sp(mdp);
+		}
+	}
+}
+
+void motion_lld_apply_pid_update(MotionDriver *mdp) {
+	// update setpoint
+	pidSetpoint(&mdp->pid, mdp->setpoint);
+	// update PID state
+	int8_t pwm = pidUpdate(&mdp->pid, mdp->pos);
+	// set motor output
+	motorSetI(pwm);
+}
+
+void motion_lld_step_motion(MotionDriver *mdp) {
+	// decrement duration if greater than zero, otherwise interpret as
+	// duration of 1ms
+	if (mdp->duration > 0) {
+		mdp->duration--;
+	}
+
+	// move to next setpoint when duration reached
+	if (mdp->duration == 0) {
+
+		// duration has ended for this setpoint
+		mdp->spindex++;
+
+		// if all setpoints have been rendered, start over
+		if (mdp->spindex >= mdp->sp->n) {
+			// decrement loop count unless infinite
+			if (mdp->loop != MSGTYPE_LOOP_INFINITE) {
+				mdp->loop--;
+			}
+			// reset index
+			mdp->spindex = 0;
+		}
+
+		// update state for next setpoint
+		motion_lld_advance_sp(mdp);
+	}
+}
+
+bool motion_lld_should_update(MotionDriver *mdp) {
+	// disable motor if there are no setpoints
+	if (mdp->sp == NULL) {
+		motorSetI(0);
+		return false;
+	}
+
+	// check iteration count
+	if (mdp->loop == MSGTYPE_LOOP_INFINITE) {
+		// loop forever
+	} else if (mdp->loop > 0) {
+		// continue looping
+	} else {
+		// done with this loop
+		motion_lld_free_sp(mdp);
+		return false;
+	}
+
+	return true;
 }
 
 msg_t driver_thread(void *p) {
@@ -74,91 +175,13 @@ msg_t driver_thread(void *p) {
 		// ENTER CRITICAL SECTION
 		chSysLock();
 
-		// save new position if moved more the noise
-		if (fabs(mdp->pos - pos) > 0.01f) {
-			mdp->pos = pos;
-		}
-
-		// get next setpoints
-		msg_t ptr = 0;
-		if (mdp->nextsp == NULL &&
-		    chMBFetchI(mdp->config.mbox, &ptr) == RDY_OK) {
-			// new setpoints available
-			mdp->nextsp = (msgtype_setpoint_t *)ptr;
-			mdp->delay = mdp->nextsp->delay;
-		}
-
-		// check delay for next setpoints
-		if (mdp->nextsp != NULL) {
-			if (mdp->delay > 0) {
-				mdp->delay--;
-			} else {
-				motion_lld_free_sp(mdp);
-				mdp->sp = mdp->nextsp;
-				mdp->nextsp = NULL;
-
-				// reset state for new setpoint
-				mdp->loop = mdp->sp->loop;
-				mdp->spindex = 0;
-				motion_lld_update_sp(mdp);
-			}
-		}
-
-		// disable motor if there are no setpoints
-		if (mdp->sp == NULL) {
-			motorSetI(0);
-			chSysUnlock();
-			continue;
-		}
-
-		// free setpoints if empty
-		if (mdp->sp->n == 0) {
-			motion_lld_free_sp(mdp);
-		}
-
-		// check iteration count
-		if (mdp->loop == MSGTYPE_LOOP_INFINITE) {
-			// loop forever
-		} else if (mdp->loop > 0) {
-			// continue looping
-		} else {
-			// done with this loop
-			motion_lld_free_sp(mdp);
-			chSysUnlock();
-			continue;
-		}
-
-		// update setpoint
-		pidSetpoint(&mdp->pid, mdp->setpoint);
-		// update PID state
-		int8_t pwm = pidUpdate(&mdp->pid, mdp->pos);
-		// set motor output
-		motorSetI(pwm);
-
-		// decrement duration if greater than zero, otherwise interpret as
-		// duration of 1ms
-		if (mdp->duration > 0) {
-			mdp->duration--;
-		}
-
-		// move to next setpoint when duration reached
-		if (mdp->duration == 0) {
-
-			// duration has ended for this setpoint
-			mdp->spindex++;
-
-			// if all setpoints have been rendered, start over
-			if (mdp->spindex >= mdp->sp->n) {
-				// decrement loop count unless infinite
-				if (mdp->loop != MSGTYPE_LOOP_INFINITE) {
-					mdp->loop--;
-				}
-				// reset index
-				mdp->spindex = 0;
-			}
-
-			// update state for next setpoint
-			motion_lld_update_sp(mdp);
+		motion_lld_update_position(mdp, pos);
+		motion_lld_load_nextsp(mdp);
+		motion_lld_activate_sp_after_delay(mdp);
+		motion_lld_free_sp_if_empty(mdp);
+		if (motion_lld_should_update(mdp)) {
+			motion_lld_apply_pid_update(mdp);
+			motion_lld_step_motion(mdp);
 		}
 
 		// EXIT CRITICAL SECTION
