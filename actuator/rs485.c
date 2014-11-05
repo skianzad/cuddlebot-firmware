@@ -78,12 +78,12 @@ static size_t writet(void *ip, const uint8_t *bp, size_t n, systime_t time) {
 	chMtxLockS(&rsp->lock);
 	// wait for idle
 	uint32_t cr1 = rsp->uart->usart->CR1;
-	rsp->uart->usart->CR1 |= USART_CR1_RWU | USART_CR1_RE;
+	rsp->uart->usart->CR1 |= USART_CR1_RWU;
 	while (rsp->uart->usart->CR1 & USART_CR1_RWU) {
 		chSchDoYieldS();
 	}
 	// enable transmitter
-	rsp->uart->usart->CR1 = cr1 | USART_CR1_TE;
+	rsp->uart->usart->CR1 = (cr1 & ~USART_CR1_RE) | USART_CR1_TE;
 	// enable RS-485 driver
 	palSetPad(GPIOB, GPIOB_RS485_TXEN);
 	// start sending
@@ -102,7 +102,7 @@ static size_t writet(void *ip, const uint8_t *bp, size_t n, systime_t time) {
 	// disable RS-485 driver
 	palClearPad(GPIOB, GPIOB_RS485_TXEN);
 	// disable transmitter
-	rsp->uart->usart->CR1 &= ~USART_CR1_TE;
+	rsp->uart->usart->CR1 = cr1;
 	// unlock UART and system
 	chMtxUnlockS();
 	chSysUnlock();
@@ -115,8 +115,6 @@ static size_t readt(void *ip, uint8_t *bp, size_t n, systime_t time) {
 	// lock system and UART
 	chSysLock();
 	chMtxLockS(&rsp->lock);
-	// enable receiver
-	rsp->uart->usart->CR1 |= USART_CR1_RE;
 	// start receiving
 	uartStartReceiveI(rsp->uart, n, bp);
 	// wait until finished
@@ -125,8 +123,6 @@ static size_t readt(void *ip, uint8_t *bp, size_t n, systime_t time) {
 		// stop receiving due to error
 		n = uartStopReceiveI(rsp->uart);
 	}
-	// disable receiver
-	rsp->uart->usart->CR1 &= ~USART_CR1_RE;
 	// unlock UART and system
 	chMtxUnlockS();
 	chSysUnlock();
@@ -184,7 +180,7 @@ void rs485Start(RS485Driver *rsp) {
 	// start UART driver
 	uartStart(rsp->uart, &uartcfg);
 	// disable transmitter and receiver
-	rsp->uart->usart->CR1 &= ~(USART_CR1_TE | USART_CR1_RE);
+	rsp->uart->usart->CR1 &= ~USART_CR1_TE;
 }
 
 void rs485Stop(RS485Driver *rsp) {
@@ -199,11 +195,10 @@ void rs485Wait(RS485Driver *rsp) {
 	chSysLock();
 	chMtxLockS(&rsp->lock);
 	// wait for idle
-	rsp->uart->usart->CR1 |= USART_CR1_RWU | USART_CR1_RE;
+	rsp->uart->usart->CR1 |= USART_CR1_RWU;
 	while (rsp->uart->usart->CR1 & USART_CR1_RWU) {
 		chSchDoYieldS();
 	}
-	rsp->uart->usart->CR1 &= ~USART_CR1_RE;
 	// unlock UART and system
 	chMtxUnlockS();
 	chSysUnlock();

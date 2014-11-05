@@ -57,6 +57,7 @@ msg_t comm_lld_receive(CommDriver *comm, msgtype_header_t *header,
 	BaseChannel *chnp = comm->config.io.chnp;
 	const size_t len = comm->config.object_size;
 	*buf = NULL;
+	size_t n;
 
 	for (;;) {
 
@@ -75,11 +76,11 @@ msg_t comm_lld_receive(CommDriver *comm, msgtype_header_t *header,
 
 		// read rest of header
 		uint8_t *bp = &header->type;
-		const size_t readlen = sizeof(*header) - sizeof(header->addr);
-		size_t n = chnReadTimeout(chnp, bp, readlen, MS2ST(10));
+		const size_t htlen = sizeof(*header) - sizeof(header->addr);
+		n = chnReadTimeout(chnp, bp, htlen, MS2ST(100));
 
 		// check header and buffer should be large enough to hold data
-		if (n != readlen || header->size > len) {
+		if (n != htlen || header->size > len) {
 			goto error;
 		}
 
@@ -88,7 +89,7 @@ msg_t comm_lld_receive(CommDriver *comm, msgtype_header_t *header,
 			// allocate memory
 			*buf = chPoolAlloc(comm->config.pool);
 			if (*buf == NULL) {
-				return RDY_RESET;
+				goto error;
 			}
 			// read with a timeout long enough to accept all data, plus 10ms slack
 			const systime_t timeout =
@@ -101,9 +102,9 @@ msg_t comm_lld_receive(CommDriver *comm, msgtype_header_t *header,
 
 		// read footer
 		msgtype_footer_t footer;
-		ret = chnReadTimeout(chnp, (uint8_t *)&footer,
-		                     sizeof(msgtype_footer_t), MS2ST(10));
-		if (ret < RDY_OK) {
+		const size_t tlen = sizeof(msgtype_footer_t);
+		n = chnReadTimeout(chnp, (uint8_t *)&footer, tlen, MS2ST(10));
+		if (n != tlen) {
 			goto error;
 		}
 
