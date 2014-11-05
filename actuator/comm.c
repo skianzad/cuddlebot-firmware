@@ -77,7 +77,7 @@ msg_t comm_lld_receive(CommDriver *comm, msgtype_header_t *header,
 		// read rest of header
 		uint8_t *bp = &header->type;
 		const size_t htlen = sizeof(*header) - sizeof(header->addr);
-		n = chnReadTimeout(chnp, bp, htlen, MS2ST(100));
+		n = chnReadTimeout(chnp, bp, htlen, MS2ST(10));
 
 		// check header and buffer should be large enough to hold data
 		if (n != htlen || header->size > len) {
