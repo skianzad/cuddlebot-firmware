@@ -94,7 +94,7 @@ CSRC = $(PORTSRC) \
        addr.c \
        comm.c \
        commtest.c \
-       crc32.c \
+       crc16.c \
        motion.c \
        motor.c \
        pid.c \

@@ -18,7 +18,7 @@ Vancouver, B.C. V6T 1Z4 Canada
 #include "addr.h"
 #include "comm.h"
 #include "commtest.h"
-#include "crc32.h"
+#include "crc16.h"
 #include "motor.h"
 #include "motion.h"
 #include "msgtype.h"
@@ -114,13 +114,13 @@ msg_t comm_lld_receive(CommDriver *comm, msgtype_header_t *header,
 		}
 
 		// calculate checksum
-		// NOTE: Do NOT use CRC calculation unit elsewhere!
-		crcReset();
-		crcUpdateN((uint8_t *)header, sizeof(*header));
+		crc16_t c;
+		crc16Reset(&c);
+		crc16UpdateN(&c, (uint8_t *)header, sizeof(*header));
 		if (*buf != NULL) {
-			crcUpdateN(*buf, header->size);
+			crc16UpdateN(&c, *buf, header->size);
 		}
-		uint16_t crc16 = crcValue();
+		uint16_t crc16 = crc16Value(&c);
 
 		// verify checksum
 		if (crc16 != footer.crc16) {
