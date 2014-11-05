@@ -93,7 +93,7 @@ msg_t comm_lld_receive(CommDriver *comm, msgtype_header_t *header,
 			}
 			// read with a timeout long enough to accept all data, plus 10ms slack
 			const systime_t timeout =
-			  MS2ST((len * 1000 / SERIAL_DEFAULT_BITRATE / 10) + 11);
+			  MS2ST((len * 1000 * 10 / SERIAL_DEFAULT_BITRATE) + 11);
 			ret = chnReadTimeout(chnp, *buf, header->size, timeout);
 			if (ret < RDY_OK) {
 				goto error;
@@ -163,11 +163,6 @@ msg_t comm_lld_service(CommDriver *comm,
                        const msgtype_header_t *header,
                        void **dp) {
 
-	PIDConfig pidcfg = {0, 0, 0, 0, 0};
-	msgtype_setpid_t *coeff = NULL;
-
-	float p;
-
 	BaseSequentialStream *chp = comm->config.io.chp;
 
 	switch (header->type) {
@@ -182,24 +177,24 @@ msg_t comm_lld_service(CommDriver *comm,
 		commtestAll(comm);
 		break;
 
-	case MSGTYPE_VALUE:
-		p = motionGetPosition(&MOTION2);
+	case MSGTYPE_VALUE: {
+		float p = motionGetPosition(&MOTION2);
 		chprintf(chp, "%d.%03d\r\n", (int)(p),
 		         (int)(1000 * fmod(copysign(p, 1.0), 1.0)));
 		break;
+	}
 
 	// computer commands
 
-	case MSGTYPE_SETPID:
+	case MSGTYPE_SETPID: {
 		if (*dp == NULL) {
 			return RDY_RESET;
 		}
-		coeff = *dp;
-		pidcfg.kp = coeff->kp;
-		pidcfg.ki = coeff->ki;
-		pidcfg.kd = coeff->kd;
+		msgtype_setpid_t *coeff = *dp;
+		PIDConfig pidcfg = {coeff->kp, coeff->ki, coeff->kd, 0, 0};
 		motionSetCoeff(&MOTION2, &pidcfg);
 		break;
+	}
 
 	case MSGTYPE_SETPOINT:
 		if (*dp == NULL) {
