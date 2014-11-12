@@ -60,4 +60,13 @@ Check if the input address matches the board address.
 */
 #define addrIsSelf(addr) (addr == addrGet())
 
+/*
+
+Check if the address is for the purr motor.
+
+@param addr input address
+
+*/
+#define addrIsPurr() (ADDR_PURR == addrGet())
+
 #endif /* _ADDR_H_ */

@@ -86,7 +86,7 @@ static const ADCConversionGroup adcgrpcfg = {
 
 void motorInit(void) {
 	// adjust PWM config for purr motor
-	if (addrGet() == ADDR_PURR) {
+	if (addrIsPurr()) {
 		pwmcfg.frequency = 207 * 202898;    //  42.0 MHz; divider = 2
 		pwmcfg.period = 207;                // 137.3 KHz
 	}

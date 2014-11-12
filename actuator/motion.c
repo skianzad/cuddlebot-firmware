@@ -14,6 +14,7 @@ Vancouver, B.C. V6T 1Z4 Canada
 #include <ch.h>
 #include <hal.h>
 
+#include "addr.h"
 #include "msgtype.h"
 #include "motion.h"
 #include "motor.h"
@@ -104,10 +105,24 @@ void motion_lld_activate_sp_after_delay(MotionDriver *mdp) {
 }
 
 void motion_lld_apply_pid_update(MotionDriver *mdp) {
-	// update setpoint
-	pidSetpoint(&mdp->pid, mdp->setpoint);
-	// update PID state
-	int8_t pwm = pidUpdate(&mdp->pid, mdp->pos);
+	int8_t pwm;
+
+	if (addrIsPurr()) {
+		// special case for purr motor
+		if (mdp->pos < -127) {
+			pwm = -127;
+		} else if (mdp->pos > 127) {
+			pwm = 127;
+		} else {
+			pwm = mdp->pos;
+		}
+	} else {
+		// update setpoint
+		pidSetpoint(&mdp->pid, mdp->setpoint);
+		// update PID state
+		pwm = pidUpdate(&mdp->pid, mdp->pos);
+	}
+
 	// set motor output
 	motorSetI(pwm);
 }
