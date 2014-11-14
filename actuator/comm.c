@@ -22,6 +22,7 @@ Vancouver, B.C. V6T 1Z4 Canada
 #include "motor.h"
 #include "motion.h"
 #include "msgtype.h"
+#include "render_pid.h"
 #include "rs485.h"
 
 CommDriver COMM1;
@@ -178,7 +179,11 @@ msg_t comm_lld_service(CommDriver *comm,
 		break;
 
 	case MSGTYPE_VALUE: {
-		float p = motionGetPosition(&MOTION2);
+		float p = 0;
+		if (!addrIsPurr()) {
+			// read is atomic on ARM32
+			p = PIDRENDER1.pos;
+		}
 		chprintf(chp, "%d.%03d\r\n", (int)(p),
 		         (int)(1000 * fmod(copysign(p, 1.0), 1.0)));
 		break;
@@ -187,12 +192,14 @@ msg_t comm_lld_service(CommDriver *comm,
 	// computer commands
 
 	case MSGTYPE_SETPID: {
-		if (*dp == NULL) {
+		if (*dp == NULL || addrIsPurr()) {
 			return RDY_RESET;
 		}
 		msgtype_setpid_t *coeff = *dp;
 		PIDConfig pidcfg = {coeff->kp, coeff->ki, coeff->kd, 0, 0};
-		motionSetCoeff(&MOTION2, &pidcfg);
+		chSysLock();
+		pidSetCoeff(&PIDRENDER1.pid, &pidcfg);
+		chSysUnlock();
 		break;
 	}
 

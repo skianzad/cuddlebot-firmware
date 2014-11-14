@@ -9,19 +9,12 @@ Vancouver, B.C. V6T 1Z4 Canada
 
 */
 
-#include <math.h>
-
 #include <ch.h>
 #include <hal.h>
 
-#include "addr.h"
-#include "msgtype.h"
 #include "motion.h"
 #include "motor.h"
-#include "pid.h"
-
-#include <chprintf.h>
-#include "rs485.h"
+#include "render.h"
 
 MotionDriver MOTION2;
 
@@ -60,18 +53,7 @@ void motion_lld_advance_sp(MotionDriver *mdp) {
 	if (mdp->sp != NULL) {
 		msgtype_spvalue_t *spp = &mdp->sp->setpoints[mdp->spindex];
 		mdp->duration = spp->duration;
-		float setpoint = ((float)spp->setpoint) * (2 * M_PI / 65535.0);
-		if (setpoint > motorHiBound()) {
-			setpoint = motorHiBound();
-		}
-		mdp->setpoint = setpoint;
-	}
-}
-
-void motion_lld_update_position(MotionDriver *mdp, const float pos) {
-	// save new position if moved more the noise
-	if (fabs(mdp->pos - pos) > 0.01f) {
-		mdp->pos = pos;
+		mdp->setpoint = spp->setpoint;
 	}
 }
 
@@ -104,29 +86,6 @@ void motion_lld_activate_sp_after_delay(MotionDriver *mdp) {
 	}
 }
 
-void motion_lld_apply_pid_update(MotionDriver *mdp) {
-	int8_t pwm;
-
-	if (addrIsPurr()) {
-		// special case for purr motor
-		if (mdp->pos < -127) {
-			pwm = -127;
-		} else if (mdp->pos > 127) {
-			pwm = 127;
-		} else {
-			pwm = mdp->pos;
-		}
-	} else {
-		// update setpoint
-		pidSetpoint(&mdp->pid, mdp->setpoint);
-		// update PID state
-		pwm = pidUpdate(&mdp->pid, mdp->pos);
-	}
-
-	// set motor output
-	motorSetI(pwm);
-}
-
 void motion_lld_step_motion(MotionDriver *mdp) {
 	// decrement duration if greater than zero, otherwise interpret as
 	// duration of 1ms
@@ -155,10 +114,9 @@ void motion_lld_step_motion(MotionDriver *mdp) {
 	}
 }
 
-bool motion_lld_should_update(MotionDriver *mdp) {
+bool motion_lld_has_update(MotionDriver *mdp) {
 	// disable motor if there are no setpoints
 	if (mdp->sp == NULL) {
-		motorSetI(0);
 		return false;
 	}
 
@@ -184,23 +142,25 @@ msg_t driver_thread(void *p) {
 			continue;
 		}
 
-		// read sensor
-		float pos = motorCGet();
+		rdWillRender(mdp->config.render);
 
 		// ENTER CRITICAL SECTION
 		chSysLock();
 
-		motion_lld_update_position(mdp, pos);
 		motion_lld_load_nextsp(mdp);
 		motion_lld_activate_sp_after_delay(mdp);
 		motion_lld_free_sp_if_empty(mdp);
-		if (motion_lld_should_update(mdp)) {
-			motion_lld_apply_pid_update(mdp);
+		if (motion_lld_has_update(mdp)) {
+			rdRenderS(mdp->config.render, mdp->setpoint);
 			motion_lld_step_motion(mdp);
+		} else {
+			motorSetI(0);
 		}
 
 		// EXIT CRITICAL SECTION
 		chSysUnlock();
+
+		rdHasRendered(mdp->config.render);
 	}
 
 	return RDY_OK;
@@ -208,7 +168,6 @@ msg_t driver_thread(void *p) {
 
 void motionInit(void) {
 	motionObjectInit(&MOTION2);
-	pidObjectInit(&MOTION2.pid);
 	MOTION2.gptp = &GPTD2;
 }
 
@@ -219,16 +178,11 @@ void motionObjectInit(MotionDriver *mdp) {
 	mdp->nextsp = NULL;
 	mdp->spindex = 0;
 	mdp->loop = 0;
-	mdp->pos = 0.0f;
-	mdp->setpoint = 0.0f;
 }
 
 void motionStart(MotionDriver *mdp, MotionConfig *mdcfg) {
 	if (mdp->state == MOTION_STOP) {
 		mdp->config = *mdcfg;
-
-		// start PID driver
-		pidStart(&mdp->pid, &DefaultPIDConfig);
 
 		// start rendering thread
 		mdp->thread_tp = chThdCreateStatic(
@@ -271,25 +225,9 @@ void motionStop(MotionDriver *mdp) {
 	mdp->state = MOTION_STOP;
 }
 
-void motionSetCoeff(MotionDriver *mdp, const PIDConfig *coeff) {
-	if (mdp->state != MOTION_READY) {
-		return;
-	}
-	chSysLock();
-	pidSetCoeff(&mdp->pid, coeff);
-	chSysUnlock();
-}
-
 msg_t motionSetpoint(MotionDriver *mdp, msgtype_setpoint_t *sp) {
 	if (mdp->state == MOTION_READY) {
 		return RDY_RESET;
 	}
 	return chMBPost(mdp->config.mbox, (msg_t)sp, TIME_IMMEDIATE);
-}
-
-float motionGetPosition(MotionDriver *mdp) {
-	chSysLock();
-	float p = mdp->pos;
-	chSysUnlock();
-	return p;
 }

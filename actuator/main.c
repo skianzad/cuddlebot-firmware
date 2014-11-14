@@ -36,6 +36,9 @@ limitations under the License.
 #include "motion.h"
 #include "motor.h"
 #include "pid.h"
+#include "render.h"
+#include "render_pid.h"
+#include "render_ps.h"
 #include "rs485.h"
 
 #define SETPOINT_BUF_SIZE               1024
@@ -87,6 +90,16 @@ int main(void) {
 	motorInit();
 	motorStart();
 	motorCalibrate();
+
+	// initialize render driver
+	if (addrIsPurr()) {
+		psrdObjectInit(&PSRENDER1);
+		motioncfg.render = (BaseRenderDriver *)&PSRENDER1;
+	} else {
+		pidrdObjectInit(&PIDRENDER1);
+		pidrdStart(&PIDRENDER1, &DefaultPIDConfig);
+		motioncfg.render = (BaseRenderDriver *)&PIDRENDER1;
+	}
 
 	// initialize setpoint buffers
 	chPoolLoadArray(&sp_memory_pool, sp_memory_buf, SETPOINT_BUF_COUNT);

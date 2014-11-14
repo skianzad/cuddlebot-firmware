@@ -16,8 +16,7 @@ Vancouver, B.C. V6T 1Z4 Canada
 #include <hal.h>
 
 #include "comm.h"
-#include "msgtype.h"
-#include "pid.h"
+#include "render.h"
 
 /* Motion driver states. */
 typedef enum {
@@ -38,6 +37,9 @@ typedef struct {
   size_t thread_wa_size;                // Thread working area size.
   tprio_t thread_prio;                  // Thread priority.
 
+  /* Render driver. */
+  BaseRenderDriver *render;             // Render driver.
+
 } MotionConfig;
 
 /* Motion driver structure. */
@@ -57,13 +59,11 @@ typedef struct {
   uint16_t delay;                       // delay until next setpoints
   uint16_t loop;                        // loops for current setpoints
   uint16_t duration;                    // duration for current setpoint
+  uint16_t setpoint;                    // current setpoint
   size_t spindex;                       // setpoint offset
-  float pos;                            // last read position
-  float setpoint;                       // current setpoint
 
   /* Driver handles. */
   GPTDriver *gptp;                      // GPT driver
-  PIDDriver pid;                        // PID driver
 
   /* Thread pointer. */
   Thread *thread_tp;                    // motion driver thread
@@ -105,16 +105,6 @@ void motionStop(MotionDriver *mdp);
 
 /*
 
-Set PID coefficients.
-
-@param mdp The motion driver
-@param coeff The PID coefficients
-
-*/
-void motionSetCoeff(MotionDriver *mdp, const PIDConfig *coeff);
-
-/*
-
 Queue next setpoint buffer.
 
 @param mdp The motion driver
@@ -123,15 +113,5 @@ Queue next setpoint buffer.
 
 */
 msg_t motionSetpoint(MotionDriver *mdp, msgtype_setpoint_t *setpoint);
-
-/*
-
-Get most recent motor position.
-
-@param mdp The motion driver
-@return The position of the sensor in radians
-
-*/
-float motionGetPosition(MotionDriver *mdp);
 
 #endif // _MOTION_H_

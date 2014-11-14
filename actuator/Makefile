@@ -98,6 +98,8 @@ CSRC = $(PORTSRC) \
        motion.c \
        motor.c \
        pid.c \
+       render_pid.c \
+       render_ps.c \
        rs485.c \
        \
        main.c
