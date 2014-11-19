@@ -36,9 +36,6 @@ typedef struct {
 	float frequency;                      // Frequency of updates, in Hz
 } PIDConfig;
 
-/* Default PID configuration. */
-extern PIDConfig DefaultPIDConfig;
-
 /*
 
 Initialize PID driver.

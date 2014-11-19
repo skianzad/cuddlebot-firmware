@@ -16,14 +16,6 @@ Vancouver, B.C. V6T 1Z4 Canada
 
 #include "pid.h"
 
-PIDConfig DefaultPIDConfig = {
-	.kp = 10.0,
-	.ki = 0.01,
-	.kd = 1.0,
-	.setpoint = 2.5,
-	.frequency = 1000
-};
-
 void pidObjectInit(PIDDriver *pid) {
 	// reset coefficients
 	pid->kp = 0;

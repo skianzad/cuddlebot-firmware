@@ -40,8 +40,8 @@ static void render(void *instance, uint16_t setpoint) {
 	// update setpoint
 	pidSetpoint(&rdp->pid, rdp->setpointf);
 	// update PID state
-	uint8_t pwm = pidUpdate(&rdp->pid, rdp->pos);
-	motorSet(pwm);
+	int8_t pwm = pidUpdate(&rdp->pid, rdp->pos);
+	motorSetI(pwm);
 }
 
 static void has_rendered(void *instance) {

@@ -25,14 +25,14 @@ static void will_render(void *instance) {
 
 static void render(void *instance, uint16_t setpoint) {
 	PSRenderDriver *rdp = instance;
-	uint8_t pwm = 0;
+	int8_t pwm = 0;
 	// calculate pulse-step duration
 	if (rdp->setpoint.v != setpoint) {
-		int8_t prev_step = rdp->setpoint.ps.step;
+		uint8_t prev_step = rdp->setpoint.ps.step;
 		// update setpoint
 		rdp->setpoint.v = setpoint;
 		// set pulse magnitude and direction
-		if (rdp->setpoint.ps.step < prev_step) {
+		if (prev_step < rdp->setpoint.ps.step) {
 			rdp->pulse_pwm = 127;
 		} else {
 			rdp->pulse_pwm = -127;
@@ -48,7 +48,7 @@ static void render(void *instance, uint16_t setpoint) {
 		pwm = rdp->setpoint.ps.step;
 	}
 	// apply output
-	motorSet(pwm);
+	motorSetI(pwm);
 }
 
 static void has_rendered(void *instance) {

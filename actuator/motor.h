@@ -18,8 +18,8 @@ Vancouver, B.C. V6T 1Z4 Canada
 /* Motor flag to reverse direction. */
 #define MOTOR_REVERSE         0x01
 
-/* Motor flag to flip axis. */
-#define MOTOR_FLIP_AXIS       0x02
+/* Motor flag to inverse position calculation. */
+#define MOTOR_INVERSE         0x02
 
 /* Motor driver state. */
 typedef struct {
@@ -28,6 +28,7 @@ typedef struct {
   int8_t flags;                         // motor flags
   float lobound;                        // lower bound on position
   float hibound;                        // upper bound on position
+  float chibound;                       // calibrated upper bound
 } MotorDriver;
 
 /* Motor driver instance. */
@@ -37,7 +38,7 @@ extern MotorDriver MD1;
 #define motorLoBound() (0)
 
 /* Get calibrated upper bound. */
-#define motorHiBound() (MD1.hibound - MD1.lobound)
+#define motorHiBound() (MD1.chibound)
 
 /* Initialize motor driver. */
 void motorInit(void);

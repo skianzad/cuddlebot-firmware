@@ -105,15 +105,6 @@ void motorObjectInit(MotorDriver *mdp) {
 		mdp->flags |= MOTOR_REVERSE;
 		break;
 	}
-
-	// flip axis when sensor is mounted upside-down relative to arm
-	switch (addrGet()) {
-	case ADDR_RIBS:
-	case ADDR_SPINE:
-	case ADDR_HEAD_PITCH:
-		mdp->flags |= MOTOR_FLIP_AXIS;
-		break;
-	}
 }
 
 void motorStart(void) {
@@ -140,6 +131,13 @@ void motorStop(void) {
 }
 
 void motorCalibrate(void) {
+	// reset state
+	MD1.pwmstate = 0;
+	MD1.flags = 0;
+	MD1.lobound = 0;
+	MD1.hibound = 0;
+	MD1.chibound = 0;
+
 	// send motor to starting position
 	motorSet(-40);
 	chThdSleepSeconds(1);
@@ -151,6 +149,15 @@ void motorCalibrate(void) {
 	chThdSleepSeconds(1);
 	// save higher bound
 	MD1.hibound = motorGet();
+
+	// determine direction and calculate calibrated high bound
+	if (MD1.hibound < MD1.lobound) {
+		MD1.flags |= MOTOR_INVERSE;
+		MD1.chibound = MD1.lobound - MD1.hibound;
+	} else {
+		MD1.flags &= ~MOTOR_INVERSE;
+		MD1.chibound = MD1.hibound - MD1.lobound;
+	}
 
 	// disable motor
 	motorSet(0);
@@ -237,17 +244,21 @@ float motorGet(void) {
 	// calculate radians
 	float pos = atan2f(psin, pcos);
 
-	if ((MD1.flags & MOTOR_FLIP_AXIS) != 0) {
-		if (pos < 0) {
-			pos = -M_PI - pos;
-		} else {
-			pos = M_PI - pos;
-		}
-	}
+	// ensure position is positive
+	pos += 2 * M_PI;
 
 	return pos;
 }
 
 float motorCGet(void) {
-	return motorGet() - MD1.lobound;
+	float pos = motorGet();
+
+	// adjust for offset and direction
+	if ((MD1.flags | MOTOR_INVERSE) != 0) {
+		return MD1.lobound - pos;
+	} else {
+		return pos - MD1.lobound;
+	}
+
+	return pos;
 }

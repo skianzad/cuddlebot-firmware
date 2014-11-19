@@ -18,7 +18,7 @@ Vancouver, B.C. V6T 1Z4 Canada
 /* Pulse-step setpoint structure for idiomatic access. */
 typedef struct {
   uint8_t pulse_duration;
-  int8_t step;
+  uint8_t step;
 } ps_setpoint_t;
 
 /* Pulse-step renderer data. */

@@ -50,6 +50,14 @@ static MEMORYPOOL_DECL(sp_memory_pool, SETPOINT_BUF_SIZE, NULL);
 static MAILBOX_DECL(sp_mailbox, sp_mailbox_buf, SETPOINT_BUF_COUNT);
 static WORKING_AREA(sp_thread_wa, 128);
 
+PIDConfig pidcfg = {
+	.kp = 5.0,
+	.ki = 0.001,
+	.kd = 1.0,
+	.setpoint = 2.5,
+	.frequency = 1000
+};
+
 MotionConfig motioncfg = {
 	.pool = &sp_memory_pool,
 	.mbox = &sp_mailbox,
@@ -89,7 +97,9 @@ int main(void) {
 	// - position sensor is calibrated
 	motorInit();
 	motorStart();
-	motorCalibrate();
+	if (!addrIsPurr()) {
+		motorCalibrate();
+	}
 
 	// initialize render driver
 	if (addrIsPurr()) {
@@ -97,7 +107,7 @@ int main(void) {
 		motioncfg.render = (BaseRenderDriver *)&PSRENDER1;
 	} else {
 		pidrdObjectInit(&PIDRENDER1);
-		pidrdStart(&PIDRENDER1, &DefaultPIDConfig);
+		pidrdStart(&PIDRENDER1, &pidcfg);
 		motioncfg.render = (BaseRenderDriver *)&PIDRENDER1;
 	}
 
