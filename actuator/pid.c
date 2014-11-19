@@ -16,21 +16,26 @@ Vancouver, B.C. V6T 1Z4 Canada
 
 #include "pid.h"
 
+void pidReset(PIDDriver *pid, float pos) {
+	// reset state
+	pid->lasterr = 0;
+	pid->integrator = 0;
+	// reset starting setpoint
+	pid->setpoint = pos;
+}
+
 void pidObjectInit(PIDDriver *pid) {
 	// reset coefficients
 	pid->kp = 0;
 	pid->ki = 0;
 	pid->kd = 0;
-	// reset starting setpoint
-	pid->setpoint = 0;
 	// reset state
-	pid->lasterr = 0;
-	pid->integrator = 0;
+	pidReset(pid, 0);
 }
 
 void pidStart(PIDDriver *pid, const PIDConfig *config) {
 	pidSetCoeff(pid, config);
-	pid->setpoint = config->setpoint;
+	pidReset(pid, config->setpoint);
 }
 
 void pidSetCoeff(PIDDriver *pid, const PIDConfig *config) {

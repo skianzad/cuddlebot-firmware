@@ -21,7 +21,7 @@ PIDRenderDriver PIDRENDER1;
 
 static void will_render(void *instance) {
 	PIDRenderDriver *rdp = instance;
-	float pos = motorCGet();
+	float pos = motorCPosition();
 	// save new position if moved more the noise
 	if (fabs(rdp->pos - pos) > 0.01f) {
 		rdp->pos = pos;
@@ -41,6 +41,7 @@ static void render(void *instance, uint16_t setpoint) {
 	pidSetpoint(&rdp->pid, rdp->setpointf);
 	// update PID state
 	int8_t pwm = pidUpdate(&rdp->pid, rdp->pos);
+	// set motor output
 	motorSetI(pwm);
 }
 
@@ -63,4 +64,6 @@ void pidrdObjectInit(PIDRenderDriver *rdp) {
 
 void pidrdStart(PIDRenderDriver *rdp, PIDConfig *pidcfg) {
 	pidStart(&rdp->pid, pidcfg);
+	// set starting setpoint
+	pidReset(&rdp->pid, motorCPosition());
 }

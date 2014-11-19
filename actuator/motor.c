@@ -142,13 +142,13 @@ void motorCalibrate(void) {
 	motorSet(-40);
 	chThdSleepSeconds(1);
 	// save lower bound
-	MD1.lobound = motorGet();
+	MD1.lobound = motorPosition();
 
 	// send motor the other way
 	motorSet(40);
 	chThdSleepSeconds(1);
 	// save higher bound
-	MD1.hibound = motorGet();
+	MD1.hibound = motorPosition();
 
 	// determine direction and calculate calibrated high bound
 	if (MD1.hibound < MD1.lobound) {
@@ -220,7 +220,7 @@ void motorSetI(int8_t p) {
 	MD1.pwmstate = p;
 }
 
-float motorGet(void) {
+float motorPosition(void) {
 	// sample buffer
 	static adcsample_t buf[ADC_GRP_NUM_CHANNELS];
 
@@ -250,8 +250,8 @@ float motorGet(void) {
 	return pos;
 }
 
-float motorCGet(void) {
-	float pos = motorGet();
+float motorCPosition(void) {
+	float pos = motorPosition();
 
 	// adjust for offset and direction
 	if ((MD1.flags | MOTOR_INVERSE) != 0) {

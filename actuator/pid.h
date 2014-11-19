@@ -57,6 +57,16 @@ void pidStart(PIDDriver *pid, const PIDConfig *config);
 
 /*
 
+Reset the PID state with starting setpoint.
+
+@param pid The PID driver
+@param setpoint The setpoint
+
+*/
+void pidReset(PIDDriver *pid, float setpoint);
+
+/*
+
 Change the PID coefficients.
 
 @param pid The PID driver

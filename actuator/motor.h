@@ -79,10 +79,19 @@ Set motor output in interrupt handler.
 */
 void motorSetI(int8_t p);
 
+/*
+
+Get motor output.
+
+@return Integer between -127 and 127
+
+*/
+#define motorGetI() (MD1.pwmstate)
+
 /* Get motor mosition, in radians between [-π, π]. */
-float motorGet(void);
+float motorPosition(void);
 
 /* Get motor calibrated position, in radians between [0, 2π]. */
-float motorCGet(void);
+float motorCPosition(void);
 
 #endif /* _MOTOR_H_ */
