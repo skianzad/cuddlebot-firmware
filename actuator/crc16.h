@@ -33,10 +33,10 @@ typedef union {
 
 void crc16Reset(crc16_t *c);
 
-void crc16Update(crc16_t *c, const uint8_t b);
+void crc16Update(crc16_t *c, const uint8_t v);
 
 void crc16UpdateN(crc16_t *c, const uint8_t *buf, const size_t n);
 
-#define crc16Value(c) ((c)->v)
+#define crc16Value(c) (~(c)->v)
 
 #endif // _CRC16_H_
