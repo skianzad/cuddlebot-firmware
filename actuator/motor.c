@@ -101,7 +101,7 @@ void motorObjectInit(MotorDriver *mdp) {
 
 	// set motor direction based on position on board
 	switch (addrGet()) {
-	case ADDR_SPINE:
+	case ADDR_RIBS:
 		mdp->flags |= MOTOR_REVERSE;
 		break;
 	}
@@ -133,7 +133,7 @@ void motorStop(void) {
 void motorCalibrate(void) {
 	// reset state
 	MD1.pwmstate = 0;
-	MD1.flags = 0;
+	MD1.flags &= ~MOTOR_INVERSE;
 	MD1.lobound = 0;
 	MD1.hibound = 0;
 	MD1.chibound = 0;
@@ -155,7 +155,6 @@ void motorCalibrate(void) {
 		MD1.flags |= MOTOR_INVERSE;
 		MD1.chibound = MD1.lobound - MD1.hibound;
 	} else {
-		MD1.flags &= ~MOTOR_INVERSE;
 		MD1.chibound = MD1.hibound - MD1.lobound;
 	}
 
