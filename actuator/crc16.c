@@ -62,7 +62,7 @@ void crc16Reset(crc16_t *c) {
 }
 
 void crc16Update(crc16_t *c, const uint8_t v) {
-	c->v = tab[((uint8_t)c->v) ^ v] ^ (c->v >> 8);
+	c->v = tab[c->b.lo ^ v] ^ c->b.hi;
 }
 
 void crc16UpdateN(crc16_t *c, const uint8_t *buf, const size_t n) {

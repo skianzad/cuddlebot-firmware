@@ -32,7 +32,7 @@ static void render(void *instance, uint16_t setpoint) {
 	PIDRenderDriver *rdp = instance;
 	// memoize setpoint conversion
 	if (rdp->setpoint != setpoint) {
-		rdp->setpointf = ((float)setpoint) * (2 * M_PI / 65535.0);
+		rdp->setpointf = ((float)setpoint) * (motorHiBound() / 65535.0);
 		if (rdp->setpointf > motorHiBound()) {
 			rdp->setpointf = motorHiBound();
 		}

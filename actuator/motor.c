@@ -253,10 +253,15 @@ float motorCPosition(void) {
 	float pos = motorPosition();
 
 	// adjust for offset and direction
-	if ((MD1.flags | MOTOR_INVERSE) != 0) {
-		return MD1.lobound - pos;
+	if ((MD1.flags & MOTOR_INVERSE) != 0) {
+		pos = MD1.lobound - pos;
 	} else {
-		return pos - MD1.lobound;
+		pos = pos - MD1.lobound;
+	}
+
+	// bound to [0, 2*pi)
+	if (pos >= 2 * M_PI) {
+		pos -= 2 * M_PI;
 	}
 
 	return pos;
