@@ -54,7 +54,6 @@ Receive master commands, ignoring messages not addressed to self.
 msg_t comm_lld_receive(CommDriver *comm, msgtype_header_t *header,
                        void **buf) {
 
-	msg_t ret;
 	BaseChannel *chnp = comm->config.io.chnp;
 	const size_t len = comm->config.object_size;
 	*buf = NULL;
@@ -75,6 +74,12 @@ msg_t comm_lld_receive(CommDriver *comm, msgtype_header_t *header,
 			return RDY_OK;
 		}
 
+		// ignore messages not addressed to self
+		if (!addrIsSelf(header->addr)) {
+			rs485Wait(comm->config.io.rsdp);
+			continue;
+		}
+
 		// read rest of header
 		uint8_t *bp = &header->type;
 		const size_t htlen = sizeof(*header) - sizeof(header->addr);
@@ -92,11 +97,9 @@ msg_t comm_lld_receive(CommDriver *comm, msgtype_header_t *header,
 			if (*buf == NULL) {
 				goto error;
 			}
-			// read with a timeout long enough to accept all data, plus 10ms slack
-			const systime_t timeout =
-			  MS2ST((len * 1000 * 10 / SERIAL_DEFAULT_BITRATE) + 11);
-			ret = chnReadTimeout(chnp, *buf, header->size, timeout);
-			if (ret < RDY_OK) {
+			// read with a timeout long enough to accept all data
+			n = chnReadTimeout(chnp, *buf, header->size, S2ST(1));
+			if (n != header->size) {
 				goto error;
 			}
 		}
@@ -107,11 +110,6 @@ msg_t comm_lld_receive(CommDriver *comm, msgtype_header_t *header,
 		n = chnReadTimeout(chnp, (uint8_t *)&footer, tlen, MS2ST(10));
 		if (n != tlen) {
 			goto error;
-		}
-
-		// ignore messages not addressed to self
-		if (!addrIsSelf(header->addr)) {
-			continue;
 		}
 
 		// calculate checksum
