@@ -179,7 +179,7 @@ void rs485ObjectInit(RS485Driver *rsp, UARTDriver *uart) {
 void rs485Start(RS485Driver *rsp) {
 	// start UART driver
 	uartStart(rsp->uart, &uartcfg);
-	// disable transmitter and receiver
+	// disable transmitter
 	rsp->uart->usart->CR1 &= ~USART_CR1_TE;
 }
 

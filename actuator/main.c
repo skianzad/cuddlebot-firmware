@@ -141,9 +141,9 @@ int main(void) {
 	for (;;) {
 		// handle commands
 		if (commHandle(&COMM1) < RDY_OK) {
-			palTogglePad(GPIOB, GPIOB_LED1);
+			palSetPad(GPIOB, GPIOB_LED0);
 		} else {
-			palTogglePad(GPIOB, GPIOB_LED0);
+			palClearPad(GPIOB, GPIOB_LED0);
 		}
 	}
 
