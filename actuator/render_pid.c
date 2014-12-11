@@ -12,6 +12,7 @@ Vancouver, B.C. V6T 1Z4 Canada
 #include <math.h>
 #include <stdint.h>
 
+#include "addr.h"
 #include "motor.h"
 #include "pid.h"
 #include "render.h"
@@ -37,6 +38,12 @@ static void will_render(void *instance) {
 
 static int8_t render(void *instance, uint16_t setpoint) {
 	PIDRenderDriver *rdp = instance;
+	// set motor direction based on position on board
+	switch (addrGet()) {
+	case ADDR_RIBS:
+		setpoint = 0xffff - setpoint;
+		break;
+	}
 	// accept setpoint as percentage
 	float sp = (float)setpoint / (float)0xffff;
 	// use 5% high and lowmargin

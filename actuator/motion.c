@@ -44,7 +44,7 @@ void motion_lld_free_sp(MotionDriver *mdp) {
 
 void motion_lld_free_sp_if_empty(MotionDriver *mdp) {
 	// free setpoints if empty
-	if (mdp->sp->n == 0) {
+	if (mdp->sp != NULL && mdp->sp->n == 0) {
 		motion_lld_free_sp(mdp);
 	}
 }
@@ -58,10 +58,13 @@ void motion_lld_load_sp_data(MotionDriver *mdp) {
 }
 
 void motion_lld_load_nextsp(MotionDriver *mdp) {
+	if (mdp->nextsp != NULL) {
+		return;
+	}
+
 	// get next setpoints
 	msg_t ptr = 0;
-	if (mdp->nextsp == NULL &&
-	    chMBFetch(mdp->config.mbox, &ptr, TIME_IMMEDIATE) == RDY_OK) {
+	if (chMBFetch(mdp->config.mbox, &ptr, TIME_IMMEDIATE) == RDY_OK) {
 		// new setpoints available
 		mdp->nextsp = (msgtype_setpoint_t *)ptr;
 		mdp->delay = mdp->nextsp->delay;

@@ -91,13 +91,6 @@ void motorObjectInit(MotorDriver *mdp) {
 	mdp->pwmoffset = pwmcfg.period - 127;
 	mdp->pwmstate = 0;
 	mdp->flags = 0;
-
-	// set motor direction based on position on board
-	switch (addrGet()) {
-	case ADDR_RIBS:
-		mdp->flags |= MOTOR_REVERSE;
-		break;
-	}
 }
 
 void motorStart(void) {
@@ -203,11 +196,11 @@ void motorCalibrate(void) {
 		chThdSleepMilliseconds(300);
 		motor_lld_sample_calc(nextPos, isin, icos);
 
-		// detect discontinuity
+		// detect incongruence
 		if (fabs(nextPos[ipos] - prevPos[ipos]) > 1.0) {
 			// this is fine, just wrapping around
 		} else if (increasing ^ (nextPos[ipos] > prevPos[ipos])) {
-			// sine and cosine values are switched...
+			// swapping sine and cosine could yield cleaner values
 			inversed = true;
 			isin = 1;
 			icos = 0;
@@ -246,11 +239,6 @@ void motorSetI(int8_t p) {
 	// input is restricted to [-128, 127] by data type
 	if (p == -128) {
 		p = -127;
-	}
-
-	// set direction
-	if ((MD1.flags & MOTOR_REVERSE) != 0) {
-		p = -p;
 	}
 
 	if (MD1.pwmstate == p) {

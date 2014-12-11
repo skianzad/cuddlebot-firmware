@@ -15,11 +15,8 @@ Vancouver, B.C. V6T 1Z4 Canada
 #include <ch.h>
 #include <hal.h>
 
-/* Motor flag to reverse direction. */
-#define MOTOR_REVERSE         0x01
-
 /* Motor flag to inverse position calculation. */
-#define MOTOR_INVERSE         0x02
+#define MOTOR_INVERSE         0x01
 
 /* Motor driver state. */
 typedef struct {

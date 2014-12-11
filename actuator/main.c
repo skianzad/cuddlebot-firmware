@@ -131,9 +131,9 @@ int main(void) {
 	// BaseSequentialStream *chp = (BaseSequentialStream *)&RSD3;
 
 	palSetPadMode(GPIOB, GPIOB_LED0, PAL_MODE_OUTPUT_PUSHPULL);
-	palSetPadMode(GPIOB, GPIOB_LED1, PAL_MODE_OUTPUT_PUSHPULL);
+	// palSetPadMode(GPIOB, GPIOB_LED1, PAL_MODE_OUTPUT_PUSHPULL);
 	palClearPad(GPIOB, GPIOB_LED0);
-	palClearPad(GPIOB, GPIOB_LED1);
+	// palClearPad(GPIOB, GPIOB_LED1);
 
 	// ignore anomalous '\0' char
 	chnGetTimeout(chnp, MS2ST(1));
