@@ -30,6 +30,7 @@ Vancouver, B.C. V6T 1Z4 Canada
 #define MSGTYPE_PONG                    '.' // respond to ping
 #define MSGTYPE_SETPID                  'c' // send PID coefficients
 #define MSGTYPE_SETPOINT                'g' // send setpoints
+#define MSGTYPE_SLEEP                   'z' // deactivate motor output
 #define MSGTYPE_TEST                    't' // run internal tests
 #define MSGTYPE_VALUE                   'v' // get position value
 

@@ -66,6 +66,7 @@ msg_t comm_lld_receive(CommDriver *comm, msgtype_header_t *header,
 
 		// handle human-testable commands
 		switch (header->addr) {
+		case MSGTYPE_SLEEP:
 		case MSGTYPE_PING:
 		case MSGTYPE_TEST:
 		case MSGTYPE_VALUE:
@@ -167,6 +168,27 @@ msg_t comm_lld_service(CommDriver *comm,
 	switch (header->type) {
 
 	// human-testable commands
+
+	case MSGTYPE_SLEEP: {
+		if (*dp == NULL) {
+			*dp = chPoolAlloc(comm->config.pool);
+		}
+
+		msgtype_setpoint_t *sb = *dp;
+		sb->delay = 0;
+		sb->loop = 0;
+		sb->n = 1;
+		sb->setpoints[0].duration = 0;
+		sb->setpoints[0].setpoint = 0;
+
+		// post stop message
+		chMBReset(comm->config.mbox);
+		if (chMBPost(comm->config.mbox, (msg_t)*dp, TIME_IMMEDIATE) == RDY_OK) {
+			*dp = NULL;
+		}
+
+		break;
+	}
 
 	case MSGTYPE_PING:
 		chprintf(chp, "%c\r\n", MSGTYPE_PONG);
