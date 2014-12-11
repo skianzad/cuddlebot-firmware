@@ -24,7 +24,7 @@ typedef struct {
 	float setpoint;
 	// private: internal state
 	float lasterr;
-	float integrator;
+	float integral;
 } PIDDriver;
 
 /* PID configuration. */

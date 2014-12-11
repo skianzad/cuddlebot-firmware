@@ -26,9 +26,8 @@ typedef struct {
   pwmcnt_t pwmoffset;                   // minimum PWM to move motor
   int8_t pwmstate;                      // last PWM value
   int8_t flags;                         // motor flags
-  float lobound;                        // lower bound on position
-  float hibound;                        // upper bound on position
-  float chibound;                       // calibrated upper bound
+  float offset;                         // position offset
+  float hibound;                        // calibrated upper bound
 } MotorDriver;
 
 /* Motor driver instance. */
@@ -38,7 +37,7 @@ extern MotorDriver MD1;
 #define motorLoBound() (0)
 
 /* Get calibrated upper bound. */
-#define motorHiBound() (MD1.chibound)
+#define motorHiBound() (MD1.hibound)
 
 /* Initialize motor driver. */
 void motorInit(void);

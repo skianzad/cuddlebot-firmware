@@ -36,13 +36,6 @@ static PWMConfig pwmcfg = {
 	.dier = 0
 };
 
-// idiomatic access to sample buffer
-typedef struct {
-	adcsample_t pos_cos;
-	adcsample_t pos_sin;
-	adcsample_t vref;
-} motor_lld_sample_t;
-
 // Number of channels to be sampled for ADC1.
 #define ADC_GRP_NUM_CHANNELS 3
 
@@ -117,6 +110,10 @@ void motorStart(void) {
 	palSetPad(GPIOB, GPIOB_POS_TCCEN);
 	// enable position sensor
 	palClearPad(GPIOB, GPIOB_POS_NEN);
+
+	// start the adc peripherable
+	adcStart(&ADCD1, NULL);
+
 	// wait for sensor to power up (ChibiOS will delay 1ms)
 	chThdSleepMicroseconds(110);
 }
@@ -130,36 +127,113 @@ void motorStop(void) {
 	palSetPad(GPIOB, GPIOB_POS_NEN);
 }
 
+msg_t motor_lld_sample_pos(float *pos) {
+	// sample buffer
+	adcsample_t buf[ADC_GRP_NUM_CHANNELS];
+
+	// sample the sensors
+	msg_t err = adcConvert(&ADCD1, &adcgrpcfg, &buf[0], 1);
+	if (err != RDY_OK) {
+		return err;
+	}
+
+	// Position (in radians) = atan2(psin, pcos)
+	pos[0] = buf[1] - buf[0];
+	pos[1] = buf[2] - buf[0];
+
+	return RDY_OK;
+}
+
+float motor_lld_calc_pos(float psin, float pcos) {
+	// calculate sine based on 12-bit sampling
+	psin = psin * 2 * M_PI / 2048.0f;
+	// calculate sine based on 12-bit sampling
+	pcos = pcos * 2 * M_PI / 2048.0f;
+	// calculate radians
+	float pos = atan2f(psin, pcos);
+	// ensure position is bounded
+	return fmod(pos + 2 * M_PI, 2 * M_PI);
+}
+
+void motor_lld_sample_calc(float *pos, const size_t isin, const size_t icos) {
+	motor_lld_sample_pos(pos);
+	pos[2] = motor_lld_calc_pos(pos[isin], pos[icos]);
+}
+
 void motorCalibrate(void) {
+	const int8_t pwm = 40;
+
+	size_t isin = 0;
+	size_t icos = 1;
+	const size_t ipos = 2;
+
+	float startPos[3];
+	float prevPos[3];
+	float nextPos[3];
+
 	// reset state
 	MD1.pwmstate = 0;
 	MD1.flags &= ~MOTOR_INVERSE;
-	MD1.lobound = 0;
-	MD1.hibound = 0;
-	MD1.chibound = 0;
 
 	// send motor to starting position
-	motorSet(-40);
+	motorSet(-pwm);
 	chThdSleepSeconds(1);
-	// save lower bound
-	MD1.lobound = motorPosition();
 
-	// send motor the other way
-	motorSet(40);
-	chThdSleepSeconds(1);
-	// save higher bound
-	MD1.hibound = motorPosition();
+	// sample starting position
+	motor_lld_sample_calc(startPos, isin, icos);
 
-	// determine direction and calculate calibrated high bound
-	if (MD1.hibound < MD1.lobound) {
-		MD1.flags |= MOTOR_INVERSE;
-		MD1.chibound = MD1.lobound - MD1.hibound;
-	} else {
-		MD1.chibound = MD1.hibound - MD1.lobound;
+	// send motor towards ending position
+	motorSet(pwm);
+
+	// sample next position
+	chThdSleepMilliseconds(10);
+	motor_lld_sample_calc(nextPos, isin, icos);
+
+	// determine direction
+	bool increasing = startPos[ipos] > nextPos[ipos];
+	bool inversed = false;
+
+	// sample until stopped
+	int i = 9;
+	while (i-- > 0) {
+		prevPos[0] = nextPos[0];
+		prevPos[1] = nextPos[1];
+		prevPos[2] = nextPos[2];
+
+		chThdSleepMilliseconds(300);
+		motor_lld_sample_calc(nextPos, isin, icos);
+
+		// detect discontinuity
+		if (fabs(nextPos[ipos] - prevPos[ipos]) > 1.0) {
+			// this is fine, just wrapping around
+		} else if (increasing ^ (nextPos[ipos] > prevPos[ipos])) {
+			// sine and cosine values are switched...
+			inversed = true;
+			isin = 1;
+			icos = 0;
+			// recalculate positions
+			startPos[ipos] = motor_lld_calc_pos(startPos[isin], startPos[icos]);
+			prevPos[ipos] = motor_lld_calc_pos(prevPos[isin], prevPos[icos]);
+			nextPos[ipos] = motor_lld_calc_pos(nextPos[isin], nextPos[icos]);
+		}
 	}
 
 	// disable motor
 	motorSet(0);
+
+	if (inversed) {
+		MD1.flags |= MOTOR_INVERSE;
+	}
+
+	if (increasing) {
+		MD1.offset = startPos[ipos];
+		MD1.hibound = nextPos[ipos];
+	} else {
+		MD1.offset = nextPos[ipos];
+		MD1.hibound = startPos[ipos];
+	}
+
+	MD1.hibound = fmod(MD1.hibound - MD1.offset + 2 * M_PI, 2 * M_PI);
 }
 
 void motorSet(int8_t p) {
@@ -220,49 +294,21 @@ void motorSetI(int8_t p) {
 }
 
 float motorPosition(void) {
-	// sample buffer
-	static adcsample_t buf[ADC_GRP_NUM_CHANNELS];
+	float pos[2];
 
-	// start the adc peripherable
-	adcStart(&ADCD1, NULL);
-	// sample the sensors
-	msg_t err = adcConvert(&ADCD1, &adcgrpcfg, &buf[0], 1);
-
-	// return on error
+	msg_t err = motor_lld_sample_pos(pos);
 	if (err != RDY_OK) {
 		return 0;
 	}
 
-	// Position (in radians) = atan2(psin, pcos)
-	float psin = buf[1] - buf[0];
-	float pcos = buf[2] - buf[0];
-	// calculate sine based on 12-bit sampling
-	psin = psin * 2 * M_PI / 2048.0f;
-	// calculate sine based on 12-bit sampling
-	pcos = pcos * 2 * M_PI / 2048.0f;
-	// calculate radians
-	float pos = atan2f(psin, pcos);
+	if (MD1.flags & MOTOR_INVERSE) {
+		return motor_lld_calc_pos(pos[1], pos[0]);
+	}
 
-	// ensure position is positive
-	pos += 2 * M_PI;
-
-	return pos;
+	return motor_lld_calc_pos(pos[0], pos[1]);
 }
 
 float motorCPosition(void) {
 	float pos = motorPosition();
-
-	// adjust for offset and direction
-	if ((MD1.flags & MOTOR_INVERSE) != 0) {
-		pos = MD1.lobound - pos;
-	} else {
-		pos = pos - MD1.lobound;
-	}
-
-	// bound to [0, 2*pi)
-	if (pos >= 2 * M_PI) {
-		pos -= 2 * M_PI;
-	}
-
-	return pos;
+	return fmod(pos - MD1.offset + 2 * M_PI, 2 * M_PI);
 }

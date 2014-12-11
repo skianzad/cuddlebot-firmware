@@ -61,6 +61,7 @@ typedef struct {
   uint16_t duration;                    // duration for current setpoint
   uint16_t setpoint;                    // current setpoint
   size_t spindex;                       // setpoint offset
+  bool active;                          // is the motion active?
 
   /* Driver handles. */
   GPTDriver *gptp;                      // GPT driver

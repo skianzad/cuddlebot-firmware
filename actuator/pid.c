@@ -19,7 +19,7 @@ Vancouver, B.C. V6T 1Z4 Canada
 void pidReset(PIDDriver *pid, float pos) {
 	// reset state
 	pid->lasterr = 0;
-	pid->integrator = 0;
+	pid->integral = 0;
 	// reset starting setpoint
 	pid->setpoint = pos;
 }
@@ -42,24 +42,22 @@ void pidSetCoeff(PIDDriver *pid, const PIDConfig *config) {
 	// set coefficients
 	pid->kp = config->kp;
 	pid->ki = config->ki / config->frequency;
-	pid->kd = config->kd / config->frequency;
+	pid->kd = config->kd * config->frequency;
 }
 
 float pidSetpoint(PIDDriver *pid, float setpoint) {
-	// edge case: if previous setpoint is infinite
+	// edge case: if setpoint is invalid
 	if (isinf(pid->setpoint) || isnan(pid->setpoint)) {
 		pid->setpoint = 0.0;
 	}
-	// calculate change
-	float delta = setpoint - pid->setpoint;
-	// constrain delta to [-1 deg, +1 deg]
-	if (fabs(delta) > 2 * M_PI / 360.0) {
-		delta = copysign(delta, 1.0);
-		// increment setpoint
-		pid->setpoint += delta;
-	} else {
+	// limit noise
+	if (fabs(setpoint - pid->setpoint) > 0.01) {
 		// save setpoint
 		pid->setpoint = setpoint;
+	}
+	// edge case: if setpoint is invalid
+	if (isinf(pid->setpoint) || isnan(pid->setpoint)) {
+		pid->setpoint = 0.0;
 	}
 	// read actual value
 	return pid->setpoint;
@@ -69,26 +67,28 @@ float pidUpdate(PIDDriver *pid, float pos) {
 	// calculate error
 	float error = pid->setpoint - pos;
 
-	// add error to integrator
-	pid->integrator += error;
+	// add error to integral
+	pid->integral += error;
 
-	// integrator upper bound
-	if (pid->integrator > 127.0) {
-		pid->integrator = 127.0;
+	// integral upper bound
+	if (pid->integral > 127.0) {
+		pid->integral = 127.0;
 	}
-	// integrator lower bound
-	else if (pid->integrator < -127.0) {
-		pid->integrator = -127.0;
+	// integral lower bound
+	else if (pid->integral < -127.0) {
+		pid->integral = -127.0;
 	}
-	// edge case: if integrator becomes invalid
-	else if (isinf(pid->integrator) || isnan(pid->integrator)) {
-		pid->integrator = 0.0;
+	// edge case: if integral becomes invalid
+	else if (isinf(pid->integral) || isnan(pid->integral)) {
+		pid->integral = 0.0;
 	}
+
+	const float derivative = error - pid->lasterr;
 
 	// calculate output
 	float output = pid->kp * error;
-	output += pid->ki * pid->integrator;
-	output -= pid->kd * (error - pid->lasterr);
+	output += pid->ki * pid->integral;
+	output += pid->kd * derivative;
 
 	// save last error
 	pid->lasterr = error;

@@ -22,10 +22,6 @@ Vancouver, B.C. V6T 1Z4 Canada
   PIDDriver pid;                                                            \
   /* The position is read and saved before the system is locked. */         \
   float pos;                                                                \
-  /* The setpoint is scaled to between [0, 2*pi]. */                        \
-  float setpointf;                                                          \
-  /* The original setpoint saved for memoization. */                        \
-  uint16_t setpoint;                                                        \
 
 /* PID renderer virtual methods table. */
 struct PIDRenderDriverVMT {

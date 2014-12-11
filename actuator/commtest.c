@@ -23,7 +23,6 @@ void commtestAll(CommDriver *comm) {
 }
 
 void commtestMotion(CommDriver *comm) {
-	BaseSequentialStream *chp = comm->config.io.chp;
 	msgtype_setpoint_t *sb = NULL;
 
 	sb = chPoolAlloc(comm->config.pool);
@@ -37,7 +36,7 @@ void commtestMotion(CommDriver *comm) {
 			sp->pulse_duration = 10;
 			sp->step = 63;
 		} else {
-			sb->setpoints[0].setpoint = 15488;
+			sb->setpoints[0].setpoint = 32768;
 		}
 		chMBPost(comm->config.mbox, (msg_t)sb, TIME_INFINITE);
 	}
@@ -45,7 +44,7 @@ void commtestMotion(CommDriver *comm) {
 	sb = chPoolAlloc(comm->config.pool);
 	if (sb != NULL) {
 		sb->delay = 2000;
-		sb->loop = 4;
+		sb->loop = 3;
 		sb->n = 2;
 		if (addrIsPurr()) {
 			ps_setpoint_t *sp = NULL;
@@ -59,13 +58,10 @@ void commtestMotion(CommDriver *comm) {
 			sp->step = 80;
 		} else {
 			sb->setpoints[0].duration = 1000;
-			sb->setpoints[0].setpoint = 1500;
-			sb->setpoints[1].duration = 2000;
-			sb->setpoints[1].setpoint = 10000;
+			sb->setpoints[0].setpoint = 0;
+			sb->setpoints[1].duration = 1000;
+			sb->setpoints[1].setpoint = 65535;
 		}
 		chMBPost(comm->config.mbox, (msg_t)sb, TIME_INFINITE);
 	}
-
-	chprintf(chp, "Testing motor control...\r\n");
-	chThdSleepSeconds(6);
 }

@@ -18,12 +18,17 @@ Vancouver, B.C. V6T 1Z4 Canada
 
 PSRenderDriver PSRENDER1;
 
+static void reset(void *instance) {
+	PSRenderDriver *rdp = instance;
+	(void)rdp;
+}
+
 static void will_render(void *instance) {
 	PSRenderDriver *rdp = instance;
 	(void)rdp;
 }
 
-static void render(void *instance, uint16_t setpoint) {
+static int8_t render(void *instance, uint16_t setpoint) {
 	PSRenderDriver *rdp = instance;
 	int8_t pwm = 0;
 	// calculate pulse-step duration
@@ -47,8 +52,7 @@ static void render(void *instance, uint16_t setpoint) {
 	} else {
 		pwm = rdp->setpoint.ps.step;
 	}
-	// apply output
-	motorSetI(pwm);
+	return pwm;
 }
 
 static void has_rendered(void *instance) {
@@ -57,7 +61,7 @@ static void has_rendered(void *instance) {
 }
 
 static const struct PSRenderDriverVMT vmt = {
-	will_render, render, has_rendered
+	reset, will_render, render, has_rendered
 };
 
 void psrdObjectInit(PSRenderDriver *rdp) {

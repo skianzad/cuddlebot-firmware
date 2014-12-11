@@ -37,7 +37,7 @@ const GPTConfig gptcfg = {
 
 void motion_lld_free_sp(MotionDriver *mdp) {
 	if (mdp->sp != NULL) {
-		chPoolFreeI(mdp->config.pool, mdp->sp);
+		chPoolFree(mdp->config.pool, mdp->sp);
 		mdp->sp = NULL;
 	}
 }
@@ -49,7 +49,7 @@ void motion_lld_free_sp_if_empty(MotionDriver *mdp) {
 	}
 }
 
-void motion_lld_advance_sp(MotionDriver *mdp) {
+void motion_lld_load_sp_data(MotionDriver *mdp) {
 	if (mdp->sp != NULL) {
 		msgtype_spvalue_t *spp = &mdp->sp->setpoints[mdp->spindex];
 		mdp->duration = spp->duration;
@@ -61,7 +61,7 @@ void motion_lld_load_nextsp(MotionDriver *mdp) {
 	// get next setpoints
 	msg_t ptr = 0;
 	if (mdp->nextsp == NULL &&
-	    chMBFetchI(mdp->config.mbox, &ptr) == RDY_OK) {
+	    chMBFetch(mdp->config.mbox, &ptr, TIME_IMMEDIATE) == RDY_OK) {
 		// new setpoints available
 		mdp->nextsp = (msgtype_setpoint_t *)ptr;
 		mdp->delay = mdp->nextsp->delay;
@@ -81,7 +81,7 @@ void motion_lld_activate_sp_after_delay(MotionDriver *mdp) {
 			// reset state for new setpoint
 			mdp->loop = mdp->sp->loop;
 			mdp->spindex = 0;
-			motion_lld_advance_sp(mdp);
+			motion_lld_load_sp_data(mdp);
 		}
 	}
 }
@@ -110,7 +110,7 @@ void motion_lld_step_motion(MotionDriver *mdp) {
 		}
 
 		// update state for next setpoint
-		motion_lld_advance_sp(mdp);
+		motion_lld_load_sp_data(mdp);
 	}
 }
 
@@ -136,33 +136,38 @@ bool motion_lld_has_update(MotionDriver *mdp) {
 
 msg_t driver_thread(void *p) {
 	MotionDriver *mdp = p;
+	mdp->active = false;
 
 	while (!chThdShouldTerminate()) {
 		if (chBSemWait(&mdp->ready) != RDY_OK) {
 			continue;
 		}
 
-		rdWillRender(mdp->config.render);
-
-		// ENTER CRITICAL SECTION
-		chSysLock();
-
 		motion_lld_load_nextsp(mdp);
 		motion_lld_activate_sp_after_delay(mdp);
 		motion_lld_free_sp_if_empty(mdp);
-		if (motion_lld_has_update(mdp)) {
-			rdRenderS(mdp->config.render, mdp->setpoint);
-			motion_lld_step_motion(mdp);
-		} else {
-			motorSetI(0);
+
+		if (!motion_lld_has_update(mdp)) {
+			motorSet(0);
+			mdp->active = false;
+			continue;
 		}
 
-		// EXIT CRITICAL SECTION
-		chSysUnlock();
+		if (!mdp->active) {
+			rdReset(mdp->config.render);
+			mdp->active = true;
+		}
+
+		rdWillRender(mdp->config.render);
+
+		int8_t pwm = rdRender(mdp->config.render, mdp->setpoint);
+		motorSet(pwm);
+		motion_lld_step_motion(mdp);
 
 		rdHasRendered(mdp->config.render);
 	}
 
+	mdp->active = false;
 	return RDY_OK;
 }
 

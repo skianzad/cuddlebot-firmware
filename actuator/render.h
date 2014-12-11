@@ -28,8 +28,9 @@ update.
 
 */
 #define _base_render_driver_methods                                         \
+  void (*reset)(void *instance);                                            \
   void (*will_render)(void *instance);                                      \
-  void (*render)(void *instance, uint16_t setpoint);                        \
+  int8_t (*render)(void *instance, uint16_t setpoint);                      \
   void (*has_rendered)(void *instance);                                     \
 
 /*
@@ -60,6 +61,15 @@ typedef struct {
 
 /*
 
+Call the `reset` method on `rp`.
+
+@param rp The render driver
+
+*/
+#define rdReset(rp) ((rp)->vmt->reset(rp))
+
+/*
+
 Call the `will_render` method on `rp`.
 
 @param rp The render driver
@@ -75,7 +85,7 @@ Call the `render` method on `rp`.
 @param sp The target setpoint
 
 */
-#define rdRenderS(rp, sp) ((rp)->vmt->render(rp, sp))
+#define rdRender(rp, sp) ((rp)->vmt->render(rp, sp))
 
 /*
 

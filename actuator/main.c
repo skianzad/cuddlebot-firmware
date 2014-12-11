@@ -51,10 +51,10 @@ static MAILBOX_DECL(sp_mailbox, sp_mailbox_buf, SETPOINT_BUF_COUNT);
 static WORKING_AREA(sp_thread_wa, 128);
 
 PIDConfig pidcfg = {
-	.kp = 5.0,
-	.ki = 0.001,
-	.kd = 1.0,
-	.setpoint = 2.5,
+	.kp = 100.0,
+	.ki = 0.0,
+	.kd = 2.0,
+	.setpoint = 2.0,
 	.frequency = 1000
 };
 

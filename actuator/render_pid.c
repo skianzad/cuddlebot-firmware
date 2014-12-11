@@ -19,6 +19,13 @@ Vancouver, B.C. V6T 1Z4 Canada
 
 PIDRenderDriver PIDRENDER1;
 
+static void reset(void *instance) {
+	PIDRenderDriver *rdp = instance;
+	float pos = motorCPosition();
+	pidReset(&rdp->pid, pos);
+	rdp->pos = pos;
+}
+
 static void will_render(void *instance) {
 	PIDRenderDriver *rdp = instance;
 	float pos = motorCPosition();
@@ -28,21 +35,20 @@ static void will_render(void *instance) {
 	}
 }
 
-static void render(void *instance, uint16_t setpoint) {
+static int8_t render(void *instance, uint16_t setpoint) {
 	PIDRenderDriver *rdp = instance;
-	// memoize setpoint conversion
-	if (rdp->setpoint != setpoint) {
-		rdp->setpointf = ((float)setpoint) * (motorHiBound() / 65535.0);
-		if (rdp->setpointf > motorHiBound()) {
-			rdp->setpointf = motorHiBound();
-		}
+	// accept setpoint as percentage
+	float sp = (float)setpoint / (float)0xffff;
+	// use 5% high and lowmargin
+	sp = (sp * 0.9 + 0.05) * motorHiBound();
+	// edge cases
+	if (sp < 0.01 || isnan(sp) || isinf(sp)) {
+		sp = 0.0;
 	}
 	// update setpoint
-	pidSetpoint(&rdp->pid, rdp->setpointf);
+	pidSetpoint(&rdp->pid, sp);
 	// update PID state
-	int8_t pwm = pidUpdate(&rdp->pid, rdp->pos);
-	// set motor output
-	motorSetI(pwm);
+	return pidUpdate(&rdp->pid, rdp->pos);
 }
 
 static void has_rendered(void *instance) {
@@ -51,14 +57,12 @@ static void has_rendered(void *instance) {
 }
 
 static const struct PIDRenderDriverVMT vmt = {
-	will_render, render, has_rendered
+	reset, will_render, render, has_rendered
 };
 
 void pidrdObjectInit(PIDRenderDriver *rdp) {
 	rdp->vmt = &vmt;
 	rdp->pos = 0.0;
-	rdp->setpointf = 0.0;
-	rdp->setpoint = 0;
 	pidObjectInit(&rdp->pid);
 }
 

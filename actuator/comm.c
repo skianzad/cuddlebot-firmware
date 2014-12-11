@@ -179,8 +179,7 @@ msg_t comm_lld_service(CommDriver *comm,
 	case MSGTYPE_VALUE: {
 		float p = 0;
 		if (!addrIsPurr()) {
-			// read is atomic on ARM32
-			p = PIDRENDER1.pos;
+			p = motorCPosition();
 		}
 		chprintf(chp, "%d.%03d\r\n", (int)(p),
 		         (int)(1000 * fmod(copysign(p, 1.0), 1.0)));
@@ -194,7 +193,7 @@ msg_t comm_lld_service(CommDriver *comm,
 			return RDY_RESET;
 		}
 		msgtype_setpid_t *coeff = *dp;
-		PIDConfig pidcfg = {coeff->kp, coeff->ki, coeff->kd, 0, 0};
+		PIDConfig pidcfg = {coeff->kp, coeff->ki, coeff->kd, 0, 1000};
 		chSysLock();
 		pidSetCoeff(&PIDRENDER1.pid, &pidcfg);
 		chSysUnlock();
