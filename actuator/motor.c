@@ -154,7 +154,7 @@ void motor_lld_sample_calc(float *pos, const size_t isin, const size_t icos) {
 }
 
 void motorCalibrate(void) {
-	const int8_t pwm = 40;
+	const int8_t pwm = 30;
 
 	size_t isin = 0;
 	size_t icos = 1;
@@ -164,22 +164,43 @@ void motorCalibrate(void) {
 	float prevPos[3];
 	float nextPos[3];
 
+	int i = 0;
+
 	// reset state
 	MD1.pwmstate = 0;
 	MD1.flags &= ~MOTOR_INVERSE;
 
 	// send motor to starting position
 	motorSet(-pwm);
-	chThdSleepSeconds(1);
 
-	// sample starting position
-	motor_lld_sample_calc(startPos, isin, icos);
+	// sample until stopped
+	chThdSleepMilliseconds(100);
+	motor_lld_sample_calc(nextPos, isin, icos);
+	for (i = 0; i < 100; i++) {
+		prevPos[ipos] = nextPos[ipos];
+
+		chThdSleepMilliseconds(50);
+		motor_lld_sample_calc(nextPos, isin, icos);
+
+		float absDelta = fabs(nextPos[ipos] - prevPos[ipos]);
+		if (absDelta > 1.0) {
+			// this is fine, just wrapping around
+		} else if (absDelta < 0.005) {
+			// no movement, must be done
+			break;
+		}
+	}
+
+	// starting position
+	startPos[0] = nextPos[0];
+	startPos[1] = nextPos[1];
+	startPos[2] = nextPos[2];
 
 	// send motor towards ending position
 	motorSet(pwm);
 
 	// sample next position
-	chThdSleepMilliseconds(10);
+	chThdSleepMilliseconds(100);
 	motor_lld_sample_calc(nextPos, isin, icos);
 
 	// determine direction
@@ -187,18 +208,22 @@ void motorCalibrate(void) {
 	bool inversed = false;
 
 	// sample until stopped
-	int i = 9;
-	while (i-- > 0) {
+	for (i = 0; i < 100; i++) {
 		prevPos[0] = nextPos[0];
 		prevPos[1] = nextPos[1];
 		prevPos[2] = nextPos[2];
 
-		chThdSleepMilliseconds(300);
+		chThdSleepMilliseconds(50);
 		motor_lld_sample_calc(nextPos, isin, icos);
 
+		float absDelta = fabs(nextPos[ipos] - prevPos[ipos]);
+
 		// detect incongruence
-		if (fabs(nextPos[ipos] - prevPos[ipos]) > 1.0) {
+		if (absDelta > 1.0) {
 			// this is fine, just wrapping around
+		} else if (absDelta < 0.005) {
+			// no movement, must be done
+			break;
 		} else if (increasing ^ (nextPos[ipos] > prevPos[ipos])) {
 			// swapping sine and cosine could yield cleaner values
 			inversed = true;
