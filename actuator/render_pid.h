@@ -34,6 +34,9 @@ typedef struct {
   _pid_render_driver_data
 } PIDRenderDriver;
 
+/* PID render object instance. */
+extern PIDRenderDriver PIDRENDER1;
+
 /*
 
 Initialize a PID render driver object.
@@ -53,7 +56,26 @@ Start a PID render driver object.
 */
 void pidrdStart(PIDRenderDriver *rdp, PIDConfig *pidcfg);
 
-/* PID render object instance. */
-extern PIDRenderDriver PIDRENDER1;
+/*
+
+Set PID coefficients.
+
+@param rdp The PID render driver object
+@param pidconfig The PID configuration
+
+*/
+void pidrdSetCoeff(PIDRenderDriver *rdp, PIDConfig *pidcfg);
+
+/*
+
+Get position value.
+
+Implementation note: the read is atomic on ARM32.
+
+@param rdp The PID render driver object
+@return The position value
+
+*/
+#define pidrdValue(rdp) ((rdp)->pos)
 
 #endif // _RENDER_PID_H_

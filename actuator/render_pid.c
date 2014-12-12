@@ -52,10 +52,16 @@ static int8_t render(void *instance, uint16_t setpoint) {
 	if (sp < 0.01 || isnan(sp) || isinf(sp)) {
 		sp = 0.0;
 	}
+
 	// update setpoint
 	pidSetpoint(&rdp->pid, sp);
-	// update PID state
-	return pidUpdate(&rdp->pid, rdp->pos);
+
+	// update PID state, locking to prevent pidrdSetCoeff from messing things
+	chSysLock();
+	int8_t pwm = pidUpdate(&rdp->pid, rdp->pos);
+	chSysUnlock();
+
+	return pwm;
 }
 
 static void has_rendered(void *instance) {
@@ -77,4 +83,10 @@ void pidrdStart(PIDRenderDriver *rdp, PIDConfig *pidcfg) {
 	pidStart(&rdp->pid, pidcfg);
 	// set starting setpoint
 	pidReset(&rdp->pid, motorCPosition());
+}
+
+void pidrdSetCoeff(PIDRenderDriver *rdp, PIDConfig *pidcfg) {
+	chSysLock();
+	pidSetCoeff(&rdp->pid, pidcfg);
+	chSysUnlock();
 }
