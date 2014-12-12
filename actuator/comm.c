@@ -201,8 +201,7 @@ msg_t comm_lld_service(CommDriver *comm,
 	case MSGTYPE_VALUE: {
 		float p = 0;
 		if (!addrIsPurr()) {
-			// read 32-bits atomically
-			p = PIDRENDER1.pos;
+			p = pidrdValue(&PIDRENDER1);
 		}
 		chprintf(chp, "%d.%03d\r\n", (int)(p),
 		         (int)(1000 * fmod(copysign(p, 1.0), 1.0)));
