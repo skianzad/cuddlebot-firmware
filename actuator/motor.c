@@ -154,7 +154,7 @@ void motor_lld_sample_calc(float *pos, const size_t isin, const size_t icos) {
 }
 
 void motorCalibrate(void) {
-	const int8_t pwm = 30;
+	const int8_t pwm = 100;
 
 	size_t isin = 0;
 	size_t icos = 1;
@@ -176,10 +176,10 @@ void motorCalibrate(void) {
 	// sample until stopped
 	chThdSleepMilliseconds(100);
 	motor_lld_sample_calc(nextPos, isin, icos);
-	for (i = 0; i < 100; i++) {
+	for (i = 0; i < 10; i++) {
 		prevPos[ipos] = nextPos[ipos];
 
-		chThdSleepMilliseconds(50);
+		chThdSleepMilliseconds(100);
 		motor_lld_sample_calc(nextPos, isin, icos);
 
 		float absDelta = fabs(nextPos[ipos] - prevPos[ipos]);
@@ -208,12 +208,12 @@ void motorCalibrate(void) {
 	bool inversed = false;
 
 	// sample until stopped
-	for (i = 0; i < 100; i++) {
+	for (i = 0; i < 10; i++) {
 		prevPos[0] = nextPos[0];
 		prevPos[1] = nextPos[1];
 		prevPos[2] = nextPos[2];
 
-		chThdSleepMilliseconds(50);
+		chThdSleepMilliseconds(100);
 		motor_lld_sample_calc(nextPos, isin, icos);
 
 		float absDelta = fabs(nextPos[ipos] - prevPos[ipos]);
