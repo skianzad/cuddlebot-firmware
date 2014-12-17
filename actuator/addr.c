@@ -54,8 +54,8 @@ void addrLoad(void) {
 
 	// map addresses
 	switch (addr) {
-	case 0b0000: addrGet() = ADDR_HEAD_PITCH; break;
-	case 0b1010: addrGet() = ADDR_HEAD_YAW; break;
+	case 0b0000: addrGet() = ADDR_HEAD_YAW; break;
+	case 0b1010: addrGet() = ADDR_HEAD_PITCH; break;
 	case 0b0101: addrGet() = ADDR_SPINE; break;
 	case 0b1111: addrGet() = ADDR_PURR; break;
 	case 0b1101: addrGet() = ADDR_RIBS; break;
