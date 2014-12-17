@@ -40,7 +40,7 @@ static int8_t render(void *instance, uint16_t setpoint) {
 	PIDRenderDriver *rdp = instance;
 	// set motor direction based on position on board
 	switch (addrGet()) {
-	case ADDR_RIBS:
+	case ADDR_SPINE:
 		setpoint = 0xffff - setpoint;
 		break;
 	}
