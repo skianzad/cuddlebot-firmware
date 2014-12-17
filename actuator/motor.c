@@ -323,5 +323,19 @@ float motorPosition(void) {
 
 float motorCPosition(void) {
 	float pos = motorPosition();
-	return fmod(pos - MD1.offset + 2 * M_PI, 2 * M_PI);
+	float cpos = fmod(pos - MD1.offset + 2 * M_PI, 2 * M_PI);
+
+	if (cpos < 0.0) {
+		MD1.offset = cpos;
+		MD1.hibound = fmod(MD1.hibound - MD1.offset + 2 * M_PI, 2 * M_PI);
+	} else if (cpos > MD1.hibound) {
+		MD1.hibound = cpos;
+	}
+
+	if (cpos < 0.0 || cpos > MD1.hibound) {
+		MD1.hibound = fmod(MD1.hibound - MD1.offset + 2 * M_PI, 2 * M_PI);
+		cpos = fmod(pos - MD1.offset + 2 * M_PI, 2 * M_PI);
+	}
+
+	return cpos;
 }
