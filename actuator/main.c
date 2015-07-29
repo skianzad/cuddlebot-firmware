@@ -1,6 +1,6 @@
 /*
 
-Cuddlebot actuator firmware - Copyright (C) 2014 Michael Phan-Ba
+Cuddlebot actuator firmware - Copyright (C) 2014 Michael Phan-Ba, 2015 Hong Yue Sean Liu
 
 Property of SPIN Research Group
 ICICS/CS Building X508-2366 Main Mall
@@ -30,6 +30,7 @@ limitations under the License.
 #include <ch.h>
 #include <hal.h>
 #include <chprintf.h>
+#include <chthreads.h>
 
 #include "addr.h"
 #include "comm.h"
@@ -98,7 +99,23 @@ int main(void) {
 	motorInit();
 	motorStart();
 	if (!addrIsPurr()) {
-		motorCalibrate();
+		if (ADDR_RIBS == addrGet()) {
+			motorCalibrate(100);	
+		}
+		else if (ADDR_SPINE == addrGet()) {
+			chThdSleep(4000);
+			motorCalibrate(-100);	
+		}
+		else if (ADDR_HEAD_PITCH == addrGet()) {
+			motorCalibrate(100);	
+		}
+		else if (ADDR_HEAD_YAW == addrGet()) {
+			chThdSleep(4000);
+			motorCalibrate(110);	
+		}
+		else {
+			motorCalibrate(100);
+		}
 	}
 
 	// initialize render driver

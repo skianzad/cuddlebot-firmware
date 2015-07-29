@@ -1,6 +1,6 @@
 /*
 
-Cuddlebot actuator firmware - Copyright (C) 2014 Michael Phan-Ba
+Cuddlebot actuator firmware - Copyright (C) 2014 Michael Phan-Ba, 2015 Hong Yue Sean Liu
 
 Property of SPIN Research Group
 ICICS/CS Building X508-2366 Main Mall
@@ -153,22 +153,22 @@ void motor_lld_sample_calc(float *pos, const size_t isin, const size_t icos) {
 	pos[2] = motor_lld_calc_pos(pos[isin], pos[icos]);
 }
 
-void motorCalibrate(void) {
-	const int8_t pwm = 100;
-
+void motorCalibrate(int8_t pwm) {
 	size_t isin = 0;
 	size_t icos = 1;
 	const size_t ipos = 2;
+	
+	// reset state
+	MD1.pwmstate = 0;
+	MD1.flags &= ~MOTOR_INVERSE;
+
+// 1st Run
 
 	float startPos[3];
 	float prevPos[3];
 	float nextPos[3];
 
 	int i = 0;
-
-	// reset state
-	MD1.pwmstate = 0;
-	MD1.flags &= ~MOTOR_INVERSE;
 
 	// send motor to starting position
 	motorSet(-pwm);
@@ -238,17 +238,93 @@ void motorCalibrate(void) {
 
 	// disable motor
 	motorSet(0);
+	chThdSleep(500);
+
+// 2nd Run, opposite direction
+
+	float startPos1[3];
+	float prevPos1[3];
+	float nextPos1[3];
+
+	// send motor to starting position
+	motorSet(pwm);
+
+	// sample until stopped
+	chThdSleepMilliseconds(100);
+	motor_lld_sample_calc(nextPos1, isin, icos);
+	for (i = 0; i < 10; i++) {
+		prevPos1[ipos] = nextPos1[ipos];
+
+		chThdSleepMilliseconds(100);
+		motor_lld_sample_calc(nextPos1, isin, icos);
+
+		float absDelta = fabs(nextPos1[ipos] - prevPos1[ipos]);
+		if (absDelta > 1.0) {
+			// this is fine, just wrapping around
+		} else if (absDelta < 0.005) {
+			// no movement, must be done
+			break;
+		}
+	}
+
+	// starting position
+	startPos1[0] = nextPos1[0];
+	startPos1[1] = nextPos1[1];
+	startPos1[2] = nextPos1[2];
+
+	// send motor towards ending position
+	motorSet(-pwm);
+
+	// sample next position
+	chThdSleepMilliseconds(100);
+	motor_lld_sample_calc(nextPos1, isin, icos);
+
+	// determine direction
+	bool increasing1 = startPos1[ipos] > nextPos1[ipos];
+
+	// sample until stopped
+	for (i = 0; i < 10; i++) {
+		prevPos1[0] = nextPos1[0];
+		prevPos1[1] = nextPos1[1];
+		prevPos1[2] = nextPos1[2];
+
+		chThdSleepMilliseconds(100);
+		motor_lld_sample_calc(nextPos1, isin, icos);
+
+		float absDelta = fabs(nextPos1[ipos] - prevPos1[ipos]);
+
+		// detect incongruence
+		if (absDelta > 1.0) {
+			// this is fine, just wrapping around
+		} else if (absDelta < 0.005) {
+			// no movement, must be done
+			break;
+		} else if (increasing1 ^ (nextPos1[ipos] > prevPos1[ipos])) {
+			// swapping sine and cosine could yield cleaner values
+			isin = 1;
+			icos = 0;
+			// recalculate positions
+			startPos1[ipos] = motor_lld_calc_pos(startPos1[isin], startPos1[icos]);
+			prevPos1[ipos] = motor_lld_calc_pos(prevPos1[isin], prevPos1[icos]);
+			nextPos1[ipos] = motor_lld_calc_pos(nextPos1[isin], nextPos1[icos]);
+		}
+	}
+
+	// disable motor
+	motorSet(0);
+
+// Set parameters
 
 	if (inversed) {
 		MD1.flags |= MOTOR_INVERSE;
 	}
 
 	if (increasing) {
-		MD1.offset = startPos[ipos];
-		MD1.hibound = nextPos[ipos];
+		MD1.offset = (startPos[ipos]+nextPos1[ipos])/2;
+		MD1.hibound = (nextPos[ipos]+startPos1[ipos])/2;
 	} else {
-		MD1.offset = nextPos[ipos];
-		MD1.hibound = startPos[ipos];
+		MD1.offset = (nextPos[ipos]+startPos1[ipos])/2;
+		MD1.hibound = (startPos[ipos]+nextPos1[ipos])/2;
 	}
 
 	MD1.hibound = fmod(MD1.hibound - MD1.offset + 2 * M_PI, 2 * M_PI);
