@@ -13,4 +13,4 @@ $ git submodule init
 $ git submodule update
 ```
 
-For instructions as to how to build the actuator firmware, navigate to the actuator folder.
+For instructions as to how to build the actuator firmware,  navigate to the actuator folder.
