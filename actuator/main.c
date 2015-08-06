@@ -54,7 +54,7 @@ static WORKING_AREA(sp_thread_wa, 128);
 PIDConfig pidcfg = {
 	.kp = 100.0,
 	.ki = 0.0,
-	.kd = 2.0,
+	.kd = 5.0,
 	.setpoint = 2.0,
 	.frequency = 1000
 };
@@ -107,10 +107,10 @@ int main(void) {
 			motorCalibrate(-100);	
 		}
 		else if (ADDR_HEAD_PITCH == addrGet()) {
-			motorCalibrate(100);	
+			chThdSleep(4000);
+			motorCalibrate(90);	
 		}
 		else if (ADDR_HEAD_YAW == addrGet()) {
-			chThdSleep(4000);
 			motorCalibrate(110);	
 		}
 		else {

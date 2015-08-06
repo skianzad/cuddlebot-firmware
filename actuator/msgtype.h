@@ -31,11 +31,16 @@ Vancouver, B.C. V6T 1Z4 Canada
 #define MSGTYPE_SETPID                  'c' // send PID coefficients
 #define MSGTYPE_SETPOINT                'g' // send setpoints
 #define MSGTYPE_SLEEP                   'z' // deactivate motor output
+#define MSGTYPE_SMOOTH			'h' // send interval setpoints
 #define MSGTYPE_TEST                    't' // run internal tests
 #define MSGTYPE_VALUE                   'v' // get position value
 
 /* Setpoint loop special values. */
 #define MSGTYPE_LOOP_INFINITE           0xffff
+
+/* Smooth motions values */
+#define SMOOTH_MININTERVAL_MS		50
+
 
 #pragma pack(push, 1)  /* set alignment to 1 byte boundary */
 
@@ -79,6 +84,13 @@ typedef struct {
 	uint16_t n;                           // offset 0x04, # of groups
 	msgtype_spvalue_t setpoints[0];       // offset 0x08, setpoints
 } msgtype_setpoint_t;
+
+/* Message to smoothly move towards a setpoint */
+typedef struct {
+	uint16_t duration;		      // offset 0x00, duration at target setpoint in ms
+	uint16_t setpoint;		      // offset 0x02, setpoint
+	uint16_t time;			      // offset 0x04, time to get to setpoint in ms
+} msgtype_smooth_t;
 
 #pragma pack(pop)   /* restore original alignment from stack */
 

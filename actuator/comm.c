@@ -228,6 +228,35 @@ msg_t comm_lld_service(CommDriver *comm,
 			*dp = NULL;
 		}
 		break;
+	
+	case MSGTYPE_SMOOTH: {
+		if (*dp == NULL || addrIsPurr()) {
+			return RDY_RESET;
+		}
+		msgtype_smooth_t *instructs = *dp;
+		uint16_t currsetpt = (uint16_t)pidrdValue(&PIDRENDER1);
+
+		msgtype_setpoint_t *interval_setpoints;
+		interval_setpoints->delay = 0;
+		interval_setpoints->loop = 1;
+		uint16_t n = (uint16_t)floor(instructs->time / SMOOTH_MININTERVAL_MS);
+		interval_setpoints->n = n;
+		uint16_t setpt_diffs = (uint16_t)floor((instructs->setpoint - currsetpt)/n);
+
+		uint16_t i;
+		for (i=0; i<n-1; i++) {
+			interval_setpoints->setpoints[i].duration = SMOOTH_MININTERVAL_MS;
+			interval_setpoints->setpoints[i].setpoint = currsetpt+(i+1)*setpt_diffs;
+		}
+		interval_setpoints->setpoints[n].duration = instructs->duration;
+		interval_setpoints->setpoints[n].setpoint = instructs->setpoint;
+		
+		if (chMBPost(comm->config.mbox, (msg_t)interval_setpoints, TIME_IMMEDIATE) == RDY_OK) {
+			*dp = NULL;
+		}
+		break;
+	}
+
 
 	// invalid commands
 
