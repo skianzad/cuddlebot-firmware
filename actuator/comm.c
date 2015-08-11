@@ -233,23 +233,41 @@ msg_t comm_lld_service(CommDriver *comm,
 		if (*dp == NULL || addrIsPurr()) {
 			return RDY_RESET;
 		}
-		msgtype_smooth_t *instructs = *dp;
-		uint16_t currsetpt = (uint16_t)pidrdValue(&PIDRENDER1);
 
-		msgtype_setpoint_t *interval_setpoints;
+		/*msgtype_setpoint_t *sb = NULL;
+		sb = chPoolAlloc(comm->config.pool);
+		sb->delay = 0;
+		sb->loop = 1;
+		sb->n = 1;
+		sb->setpoints[0].duration = 1000;
+		sb->setpoints[0].setpoint = 0;
+
+		if (chMBPost(comm->config.mbox, (msg_t)sb, TIME_IMMEDIATE) == RDY_OK) {
+			*dp = NULL;
+		}
+		break;*/
+
+// (pos-offset)/(hibound-offset) *65535
+
+		msgtype_smooth_t *instructs = *dp;
+		float curr_pos = pidrdValue(&PIDRENDER1);
+		uint16_t currsetpt = (uint16_t) ( 65535*(curr_pos-MD1.offset)/(MD1.hibound-MD1.offset) );
+
+		msgtype_setpoint_t *interval_setpoints = NULL;
+		interval_setpoints = chPoolAlloc(comm->config.pool);
 		interval_setpoints->delay = 0;
 		interval_setpoints->loop = 1;
 		uint16_t n = (uint16_t)floor(instructs->time / SMOOTH_MININTERVAL_MS);
-		interval_setpoints->n = n;
-		uint16_t setpt_diffs = (uint16_t)floor((instructs->setpoint - currsetpt)/n);
+		interval_setpoints->n = n+1;
+		uint16_t setpt_diffs = (uint16_t)floor((instructs->setpoints->setpoint - currsetpt)/n);
 
 		uint16_t i;
 		for (i=0; i<n-1; i++) {
 			interval_setpoints->setpoints[i].duration = SMOOTH_MININTERVAL_MS;
 			interval_setpoints->setpoints[i].setpoint = currsetpt+(i+1)*setpt_diffs;
 		}
-		interval_setpoints->setpoints[n].duration = instructs->duration;
-		interval_setpoints->setpoints[n].setpoint = instructs->setpoint;
+		interval_setpoints->setpoints[n].duration = instructs->setpoints->duration;
+		interval_setpoints->setpoints[n].setpoint = instructs->setpoints->setpoint;
 		
 		if (chMBPost(comm->config.mbox, (msg_t)interval_setpoints, TIME_IMMEDIATE) == RDY_OK) {
 			*dp = NULL;

@@ -87,9 +87,8 @@ typedef struct {
 
 /* Message to smoothly move towards a setpoint */
 typedef struct {
-	uint16_t duration;		      // offset 0x00, duration at target setpoint in ms
-	uint16_t setpoint;		      // offset 0x02, setpoint
-	uint16_t time;			      // offset 0x04, time to get to setpoint in ms
+	uint16_t time;			      // offset 0x00, time to get to setpoint in ms
+	msgtype_spvalue_t setpoints[0];       // offset 0x02, setpoint
 } msgtype_smooth_t;
 
 #pragma pack(pop)   /* restore original alignment from stack */
