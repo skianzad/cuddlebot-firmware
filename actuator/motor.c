@@ -320,10 +320,10 @@ void motorCalibrate(int8_t pwm) {
 	}
 
 	if (increasing) {
-		MD1.offset = (startPos[ipos]+nextPos1[ipos])/2-1;
+		MD1.offset = (startPos[ipos]+nextPos1[ipos])/2;
 		MD1.hibound = (nextPos[ipos]+startPos1[ipos])/2;
 	} else {
-		MD1.offset = (nextPos[ipos]+startPos1[ipos])/2-1;
+		MD1.offset = (nextPos[ipos]+startPos1[ipos])/2;
 		MD1.hibound = (startPos[ipos]+nextPos1[ipos])/2;
 	}
 

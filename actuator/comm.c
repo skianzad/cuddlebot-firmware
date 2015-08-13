@@ -1,6 +1,6 @@
 /*
 
-Cuddlebot actuator firmware - Copyright (C) 2014 Michael Phan-Ba
+Cuddlebot actuator firmware - Copyright (C) 2014 Michael Phan-Ba, 2015 Hong Yue Sean Liu
 
 Property of SPIN Research Group
 ICICS/CS Building X508-2366 Main Mall
@@ -228,30 +228,19 @@ msg_t comm_lld_service(CommDriver *comm,
 			*dp = NULL;
 		}
 		break;
+
+// Newly implemented smooth command. Converts smooth command into a set of uni-directional setpoint commands at equal intervals
+// Problems with the algorithm, if there are, is most likely in the "currsetpt" conversion after the value of the current position
+// 	is read out with "pidrdValue".
 	
 	case MSGTYPE_SMOOTH: {
 		if (*dp == NULL || addrIsPurr()) {
 			return RDY_RESET;
 		}
 
-		/*msgtype_setpoint_t *sb = NULL;
-		sb = chPoolAlloc(comm->config.pool);
-		sb->delay = 0;
-		sb->loop = 1;
-		sb->n = 1;
-		sb->setpoints[0].duration = 1000;
-		sb->setpoints[0].setpoint = 0;
-
-		if (chMBPost(comm->config.mbox, (msg_t)sb, TIME_IMMEDIATE) == RDY_OK) {
-			*dp = NULL;
-		}
-		break;*/
-
-// (pos-offset)/(hibound-offset) *65535
-
 		msgtype_smooth_t *instructs = *dp;
 		float curr_pos = pidrdValue(&PIDRENDER1);
-		uint16_t currsetpt = (uint16_t) ( 65535*(curr_pos-MD1.offset)/(MD1.hibound-MD1.offset) );
+		uint16_t currsetpt = (uint16_t) ( (float)0xffff * (curr_pos/motorHiBound()-0.05)/0.9 );
 
 		msgtype_setpoint_t *interval_setpoints = NULL;
 		interval_setpoints = chPoolAlloc(comm->config.pool);
