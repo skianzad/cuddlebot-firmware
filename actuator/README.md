@@ -3,9 +3,9 @@
 This actuator firmware code is an update/adaptation of [mikepb's version of the UBC cuddlebot firmware](https://github.com/mikepb/cuddlebot-firmware/tree/master/actuator).
 
 Major changes include:
-- Implementation of smoothing command ([comm.c](/comm.c))
-- Bi-directional calibration ([motor.c](/motor.c))
-- Discrete calibration at timed intervals ([main.c](/main.c))
+- Implementation of smoothing command ([comm.c](comm.c))
+- Bi-directional calibration ([motor.c](motor.c))
+- Discrete calibration at timed intervals ([main.c](main.c))
 
 ## STM32 Setup/Installation
 
