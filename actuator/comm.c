@@ -240,7 +240,7 @@ msg_t comm_lld_service(CommDriver *comm,
 
 		msgtype_smooth_t *instructs = *dp;
 		float curr_pos = pidrdValue(&PIDRENDER1);
-		uint16_t currsetpt = (uint16_t) ( (float)0xffff * (curr_pos/motorHiBound()-0.05)/0.9 );
+		int32_t currsetpt = (int32_t) ( (float)0xffff * (curr_pos/motorHiBound()-0.05)/0.9 );
 
 		msgtype_setpoint_t *interval_setpoints = NULL;
 		interval_setpoints = chPoolAlloc(comm->config.pool);
@@ -248,12 +248,12 @@ msg_t comm_lld_service(CommDriver *comm,
 		interval_setpoints->loop = 1;
 		uint16_t n = (uint16_t)floor(instructs->time / SMOOTH_MININTERVAL_MS);
 		interval_setpoints->n = n+1;
-		uint16_t setpt_diffs = (uint16_t)floor((instructs->setpoints->setpoint - currsetpt)/n);
+		int32_t setpt_diffs = (int32_t)floor(((int32_t)instructs->setpoints->setpoint - currsetpt)/(int32_t)n);
 
 		uint16_t i;
 		for (i=0; i<n-1; i++) {
 			interval_setpoints->setpoints[i].duration = SMOOTH_MININTERVAL_MS;
-			interval_setpoints->setpoints[i].setpoint = currsetpt+(i+1)*setpt_diffs;
+			interval_setpoints->setpoints[i].setpoint = (uint16_t)(currsetpt+(i+1)*setpt_diffs);
 		}
 		interval_setpoints->setpoints[n].duration = instructs->setpoints->duration;
 		interval_setpoints->setpoints[n].setpoint = instructs->setpoints->setpoint;
