@@ -9,7 +9,7 @@ Major changes include:
 
 ## STM32 Setup/Installation
 
-The following descriptions are copied off of [this installation guide](http://fab.cba.mit.edu/classes/4.140/tutorials/EmbeddedProgramming/stm32.html) (in case the website is no longer available in the future). This setup is accurate as of August 2015 for Ubuntu 14.04.
+The following descriptions are copied off of [this installation guide](http://fab.cba.mit.edu/classes/4.140/tutorials/EmbeddedProgramming/stm32.html) (in case the website is no longer available in the future). This setup is accurate as of August 2015 for Ubuntu 14.04. I think the updated version of the description can be find here[guide](http://fab.cba.mit.edu/classes/863.13/tutorials/EmbeddedProgramming/stm32.html)
 
 ```bash
 # Update all sources and upgrade system
